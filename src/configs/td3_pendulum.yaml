@@ -1,0 +1,14 @@
+# TD3 configuration for Pendulum-v1
+agent_type: "td3"
+env_name: "Pendulum-v1"
+
+# Override base settings
+total_timesteps: 100000 # Quick test (use 200000 for better results)
+
+# TD3-specific hyperparameters
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_delay: 2
+noise_std: 0.1
+noise_clip: 0.5
+hidden_dim: 256

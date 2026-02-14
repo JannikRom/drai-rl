@@ -1,0 +1,13 @@
+agent_type: "td3"
+env_name: "Pendulum-v1"
+
+# TD3-specific (Todo: Add)
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_delay: 2
+noise_std: 0.1
+noise_clip: 0.5
+hidden_dim: 256
+
+# Override base if needed
+total_timesteps: 200000
