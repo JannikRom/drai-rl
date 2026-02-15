@@ -1,0 +1,38 @@
+# TD3 Agent for Hockey Environment
+agent_type: "TD3"
+env_name: "Hockey-v0"
+seed: 42
+
+# Hockey-specific
+mode: "NORMAL"
+opponent: "random"
+reward_shaping:
+  touch_puck: 0.0
+  puck_direction: 0.0
+  closeness_to_puck: 0.0
+
+# Training
+total_timesteps: 400000
+batch_size: 512
+n_parallel_envs: 1
+learning_starts: 20000
+replay_capacity: 500000
+
+# TD3 hyperparameters
+gamma: 0.99
+tau: 0.005
+policy_delay: 2
+noise_std: 0.15
+policy_noise: 0.2
+noise_clip: 0.5
+hidden_dim: 512
+actor_lr: 0.0003
+critic_lr: 0.0003
+
+# Agent dimensions
+state_dim: 18
+action_dim: 4
+max_action: 1.0
+
+# Logging
+log_dir: "experiments/logs"

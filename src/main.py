@@ -1,30 +1,41 @@
-import gymnasium as gym
+import argparse
+from pathlib import Path
 from common.config import RLConfig
 from agents.td3_agent import TD3Agent
 from trainer import Trainer
 
 
-def main():
-    """Train TD3 agent on Pendulum-v1."""
-    # Load configuration
-    config = RLConfig.from_yaml("configs/td3_pendulum.yaml")
+def create_agent(config: RLConfig):
+    """Create agent based on config."""
     
-    # Get environment dimensions
-    env = gym.make(config.env_name)
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-    max_action = float(env.action_space.high[0])
-    env.close()
+    if config.agent_type == "TD3":
+        return TD3Agent(
+            state_dim=config.get('state_dim'),
+            action_dim=config.get('action_dim'),
+            max_action=config.get('max_action', 1.0),
+            config=config.agent_params
+        )
+    #elif config.agent_type == "DQN":
+    #    return DQNAgent(...)
+    #elif config.agent_type == "SAC":
+    #    return SACAgent(...)
+    else:
+        raise ValueError(f"Unknown agent type: {config.agent_type}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, required=True,
+                       help='Path to config YAML file')
+    args = parser.parse_args()
+    
+    # Load config
+    config = RLConfig.from_yaml(args.config)
     
     # Create agent
-    agent = TD3Agent(
-        state_dim=state_dim,
-        action_dim=action_dim,
-        max_action=max_action,
-        config=config.agent_params
-    )
+    agent = create_agent(config)
     
-    # Train
+    # Create trainer and train
     trainer = Trainer(agent, config)
     trainer.train()
 

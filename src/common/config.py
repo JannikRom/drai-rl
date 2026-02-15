@@ -19,10 +19,13 @@ class RLConfig:
 
     Unknown params are stored in agent_params for algorithm-specific settings.
     """
+    
+    # Core fields
     agent_type: str
     env_name: str
     seed: int = 42
 
+    # Training params
     total_timesteps: int = 100000
     batch_size: int = 256
     learning_starts: int = 10000
@@ -31,7 +34,15 @@ class RLConfig:
     tau: float = 0.005
     log_dir: str = "runs"
 
-    # all agent specific params
+    # Hockey specific
+    mode: str = "NORMAL"
+    opponent: str = "random"
+    reward_shaping: Dict[str, float] = field(default_factory=lambda: {
+        'touch_puck': 0.0,
+        'puck_direction': 0.0
+    })
+
+    # All agent specific params
     agent_params: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod

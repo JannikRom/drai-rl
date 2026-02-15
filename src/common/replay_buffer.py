@@ -5,8 +5,6 @@ Author: Jannik Rombach
 """
 
 import numpy as np
-from collections import deque
-import random
 
 class ReplayBuffer:
     """ 
@@ -21,7 +19,15 @@ class ReplayBuffer:
             capacity (int): Maximum of transitions to store in buffer.
                             Oldest are drpped when capacity is exceeded (FIFO).
         """
-        self.buffer = deque(maxlen=capacity)
+        self.capacity = capacity
+        self.position = 0
+        self.size = 0
+
+        self.states = None
+        self.actions = None
+        self.rewards = None
+        self.next_states = None
+        self.dones = None
 
     def push(self, state: np.ndarray, action: np.ndarray, reward: float, 
              next_state: np.ndarray, done: bool):
@@ -34,13 +40,25 @@ class ReplayBuffer:
             next_state (np.ndarray): Resulting observation after taking action.
             done (bool): Whether the episode ended after taking action.
         """
-        self.buffer.append((
-            state.copy(), 
-            action.copy(), 
-            float(reward), 
-            next_state.copy(), 
-            float(done)
-        ))
+
+        # Initialize arrays on first push
+        if self.states is None:
+            self.states = np.zeros((self.capacity, *state.shape), dtype=np.float32)
+            self.actions = np.zeros((self.capacity, *action.shape), dtype=np.float32)
+            self.rewards = np.zeros(self.capacity, dtype=np.float32)
+            self.next_states = np.zeros((self.capacity, *state.shape), dtype=np.float32)
+            self.dones = np.zeros(self.capacity, dtype=np.float32)
+        
+        # Store at current position (circular buffer)
+        idx = self.position % self.capacity
+        self.states[idx] = state
+        self.actions[idx] = action
+        self.rewards[idx] = reward
+        self.next_states[idx] = next_state
+        self.dones[idx] = float(done)
+        
+        self.position += 1
+        self.size = min(self.size + 1, self.capacity)
 
     def sample(self, batch_size: int) -> tuple:
         """Sample random batch of transitions for training.
@@ -51,16 +69,16 @@ class ReplayBuffer:
         Returns:
             tuple: (s,a,r,s',d) as numpy arrays with shape (batch_size, ...).
         """
-        batch = random.sample(self.buffer, min(len(self.buffer), batch_size))
-        states, actions, rewards, next_states, dones = zip(*batch)
+        indices = np.random.randint(0, self.size, size=batch_size)
+        
         return (
-            np.array(states), 
-            np.array(actions), 
-            np.array(rewards), 
-            np.array(next_states), 
-            np.array(dones)
+            self.states[indices],
+            self.actions[indices],
+            self.rewards[indices],
+            self.next_states[indices],
+            self.dones[indices]
         )
 
     def __len__(self):
         """Return current number of transitions stored in buffer."""
-        return len(self.buffer)
+        return self.size

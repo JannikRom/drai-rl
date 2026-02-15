@@ -2,14 +2,23 @@ import gymnasium as gym
 import numpy as np
 import torch
 from pathlib import Path
-from agents.td3_agent import TD3Agent
+from typing import Optional
+from agents.base_agent import BaseAgent
 from common.replay_buffer import ReplayBuffer
 from common.config import RLConfig
+from environments.hockey_env_wrapper import HockeyEnvWrapper
+
 
 class Trainer:
 
-    def __init__ (self, agent, config: RLConfig):
+    def __init__(self, agent: BaseAgent, config: RLConfig):
+        """
+        Initialize trainer for RL agent.
         
+        Args:
+            agent: RL agent implementing BaseAgent interface
+            config: Configuration object with hyperparameters
+        """
         self.agent = agent
         self.config = config
 
@@ -18,8 +27,14 @@ class Trainer:
         np.random.seed(config.seed)
 
         # Create environment
-        self.env = gym.make(config.env_name)
-        self.env.action_space.seed(config.seed)
+        if config.env_name == 'Hockey-v0':
+            self.env = HockeyEnvWrapper(
+                mode=getattr(config, 'mode', 'NORMAL'),
+                opponent=getattr(config, 'opponent', 'random'),
+                reward_shaping=getattr(config, 'reward_shaping', {})
+            )
+        else:
+            self.env = gym.make(config.env_name)
 
         # Initialize buffer
         self.buffer = ReplayBuffer(config.replay_capacity)
@@ -34,10 +49,8 @@ class Trainer:
         self.save_dir = Path(config.log_dir) / f"{agent_name}_{config.env_name}"
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
-
-
     def train(self):
-
+        """Main training loop."""
         print("=" * 60)
         print(f"Training {self.agent.__class__.__name__} on {self.config.env_name}")
         print(f"Total timesteps: {self.config.total_timesteps}")
@@ -53,12 +66,11 @@ class Trainer:
 
             # Select action
             if timestep < self.config.learning_starts:
-                # Random exploration initially
                 action = self.env.action_space.sample()
             else:
                 action = self.agent.select_action(state, eval_mode=False)
 
-                # Execute action
+            # Execute action
             next_state, reward, terminated, truncated, _ = self.env.step(action)
             done = terminated or truncated
 
@@ -87,13 +99,13 @@ class Trainer:
                     print(f"Episode {episode_num:4d} | Timestep {timestep:6d} | "
                           f"Avg Reward: {avg_reward:7.2f} | Avg Length: {avg_length:5.1f}")
                     
-                 # Reset environment
+                # Reset environment
                 state, _ = self.env.reset()
                 episode_reward = 0
                 episode_length = 0
 
-            # Peridoic evaluation
-            if timestep % 10000 == 0:
+            # Periodic evaluation
+            if timestep % 50000 == 0:
                 eval_reward = self.evaluate(num_episodes=5)
                 print(f"  → Evaluation at timestep {timestep}: {eval_reward:.2f}")
         
@@ -107,7 +119,15 @@ class Trainer:
         self.env.close()
 
     def evaluate(self, num_episodes: int = 5) -> float:
-
+        """
+        Evaluate agent performance.
+        
+        Args:
+            num_episodes: Number of episodes to evaluate
+            
+        Returns:
+            Average episode reward
+        """
         eval_rewards = []
         for _ in range(num_episodes):
             state, _ = self.env.reset()
@@ -125,7 +145,7 @@ class Trainer:
         return np.mean(eval_rewards)
     
     def save_results(self):
-
+        """Save model and training metrics."""
         # Save model
         model_path = self.save_dir / "agent.pth"
         self.agent.save(str(model_path))
@@ -139,30 +159,30 @@ class Trainer:
         self._plot_rewards()
 
     def _plot_rewards(self):
-            """Plot training rewards."""
-            try:
-                import matplotlib.pyplot as plt
-                
-                plt.figure(figsize=(10, 5))
-                plt.plot(self.episode_rewards, alpha=0.3, label='Episode Reward')
-                
-                # Moving average
-                window = 10
-                if len(self.episode_rewards) >= window:
-                    moving_avg = np.convolve(self.episode_rewards, 
-                                            np.ones(window)/window, mode='valid')
-                    plt.plot(range(window-1, len(self.episode_rewards)), 
-                            moving_avg, linewidth=2, label=f'{window}-Episode Moving Avg')
-                
-                plt.xlabel('Episode')
-                plt.ylabel('Reward')
-                plt.title(f'{self.agent.__class__.__name__} on {self.config.env_name}')
-                plt.legend()
-                plt.grid(alpha=0.3)
-                
-                plot_path = self.save_dir / "training_rewards.png"
-                plt.savefig(plot_path, dpi=150, bbox_inches='tight')
-                plt.close()
-                print(f"Plot saved to: {plot_path}")
-            except ImportError:
-                print("Matplotlib not available, skipping plot")
+        """Plot training rewards."""
+        try:
+            import matplotlib.pyplot as plt
+            
+            plt.figure(figsize=(10, 5))
+            plt.plot(self.episode_rewards, alpha=0.3, label='Episode Reward')
+            
+            # Moving average
+            window = 10
+            if len(self.episode_rewards) >= window:
+                moving_avg = np.convolve(self.episode_rewards, 
+                                        np.ones(window)/window, mode='valid')
+                plt.plot(range(window-1, len(self.episode_rewards)), 
+                        moving_avg, linewidth=2, label=f'{window}-Episode Moving Avg')
+            
+            plt.xlabel('Episode')
+            plt.ylabel('Reward')
+            plt.title(f'{self.agent.__class__.__name__} on {self.config.env_name}')
+            plt.legend()
+            plt.grid(alpha=0.3)
+            
+            plot_path = self.save_dir / "training_rewards.png"
+            plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+            plt.close()
+            print(f"Plot saved to: {plot_path}")
+        except ImportError:
+            print("Matplotlib not available, skipping plot")
