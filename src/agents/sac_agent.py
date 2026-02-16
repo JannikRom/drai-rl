@@ -1,3 +1,20 @@
+"""
+Soft Actor-Critic (SAC) agent.
+
+Key features:
+1. Maximizes both expected reward and policy entropy to encourage exploration and robustness
+2. Learns a Gaussian distribution over actions, providing inherent exploration without the need for manual noise processes (Stochastic Policy)
+3. Clipped Double-Q Learning to mitigate the overestimation bias 
+4. Automatic Entropy Tuning, ensuring the policy maintains a target entropy
+
+Author: Adriano Polzer
+
+References:
+[1] Haarnoja et al. (2018): "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor"
+[2] Haarnoja et al. (2019): "Soft Actor-Critic Algorithms and Applications"
+[3] OpenAI Spinning Up: "Soft Actor-Critic"
+"""
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -25,9 +42,14 @@ class SACAgent(BaseAgent):
         # Hyperparameters
         self.gamma = config.get("gamma", 0.99)
         self.tau = config.get("tau", 0.005)
-        self.alpha = config.get("alpha", 0.05)          
         hidden_dim = config.get("hidden_dim", 256)
-        
+
+        self.inital_alpha = config.get("alpha", 0.2)          
+        self.target_entropy = -action_dim
+        self.log_alpha = torch.tensor(self.inital_alpha, device=self.device).log().detach().requires_grad_(True)
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("actor_lr", 3e-4))
+        self.alpha = self.log_alpha.exp()
+
         # Networks
         self.actor = StochasticPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
         
@@ -78,7 +100,7 @@ class SACAgent(BaseAgent):
             target_q = torch.min(target_q1, target_q2)
             
             # TD target
-            target_q = rewards + self.gamma * (1 - dones) * (target_q - self.alpha * next_log_probs)
+            target_q = rewards + self.gamma * (1 - dones) * (target_q - self.alpha.detach() * next_log_probs)
         
         # Update critics
         current_q1 = self.critic_1(states, actions)
@@ -101,6 +123,14 @@ class SACAgent(BaseAgent):
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
+
+        # alpha loss for automatic entropy tuning
+        alpha_loss = -(self.log_alpha * (log_probs + self.target_entropy).detach()).mean()
+        
+        self.alpha_optimizer.zero_grad()
+        alpha_loss.backward()
+        self.alpha_optimizer.step()
+        self.alpha = self.log_alpha.exp()
         
         # Soft update targets
         self._soft_update(self.critic_1, self.critic_1_target)
@@ -111,7 +141,9 @@ class SACAgent(BaseAgent):
         return {
             "critic_loss": critic_loss.item(),
             "actor_loss": actor_loss.item(),
-            "mean_log_prob": log_probs.mean().item()
+            "mean_log_prob": log_probs.mean().item(),
+            "alpha": self.alpha.item(),
+            "alpha_loss": alpha_loss.item(),
         }
 
     def _soft_update(self, source: nn.Module, target: nn.Module):
@@ -124,7 +156,8 @@ class SACAgent(BaseAgent):
         torch.save({
             "actor": self.actor.state_dict(),
             "critic_1": self.critic_1.state_dict(),
-            "critic_2": self.critic_2.state_dict()
+            "critic_2": self.critic_2.state_dict(),
+            "log_alpha": self.log_alpha,
         }, path)
 
     def load(self, path: str):
@@ -133,7 +166,9 @@ class SACAgent(BaseAgent):
         self.actor.load_state_dict(checkpoint["actor"])
         self.critic_1.load_state_dict(checkpoint["critic_1"])
         self.critic_2.load_state_dict(checkpoint["critic_2"])
-        
+        self.log_alpha = checkpoint["log_alpha"]
+        self.alpha = self.log_alpha.exp().detach()
+
         # Sync targets
         self.critic_1_target.load_state_dict(self.critic_1.state_dict())
         self.critic_2_target.load_state_dict(self.critic_2.state_dict())

@@ -1,14 +1,18 @@
 """
 Neural network architectures for continuous control RL algorithms.
-Implements actor (deterministic policy) and critic (Q-network) from DDPG [1][2].
+Implements actor (deterministic and stochastic policy) and critic (Q-network) from DDPG [1][2] and SAC [3][4].
 
-Author: Jannik Rombach
+Author: Jannik Rombach, Adriano Polzer
 
 References:
 [1] Lillicrap et al. (2016): "Continuous control with deep reinforcement learning"
     (DDPG) - https://arxiv.org/abs/1509.02971
 [2] OpenAi Spinning Up: "Deep Deterministic Policy Gradient"
     (DDPG) - https://spinningup.openai.com/en/latest/algorithms/ddpg.html
+[3] Haarnoja et al. (2018): "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor"
+    (SAC) - https://arxiv.org/abs/1801.01290
+[4] OpenAi Spinning Up: "Soft Actor-Critic"
+    (SAC) - https://spinningup.openai.com/en/latest/algorithms/sac.html 
 """
 
 import torch
@@ -57,8 +61,7 @@ class DeterministicPolicy(nn.Module):
         
 class StochasticPolicy(nn.Module):
     """
-    Stochastic policy network for SAC.
-    Maps states to continuous action distributions via mean and std
+    Stochastic policy network for SAC
     """
     def __init__(self, state_dim: int, action_dim: int, max_action: float, 
                  hidden_dim: int = 256):
