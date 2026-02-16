@@ -1,0 +1,13 @@
+agent_type: "SAC"
+env_name: "Pendulum-v1"
+
+# SAC-specific
+actor_lr: 0.0003
+critic_lr: 0.0003
+alpha: 0.2
+hidden_dim: 256
+
+# Override base if needed
+state_dim: 3
+action_dim: 1
+max_action: 2.0
