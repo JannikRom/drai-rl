@@ -38,13 +38,13 @@ class TD3Agent(BaseAgent):
         print(f"Using device: {self.device}")
         
         # Hyperparameters
-        self.gamma = config.get("gamma", 0.99)
-        self.tau = config.get("tau", 0.005)
-        self.policy_delay = config.get("policy_delay", 2)
-        self.noise_std = config.get("noise_std", 0.1)
-        self.policy_noise = config.get("policy_noise", 0.2)
-        self.noise_clip = config.get("noise_clip", 0.5)
-        hidden_dim = config.get("hidden_dim", 256)
+        self.gamma = config.get("gamma")
+        self.tau = config.get("tau")
+        self.policy_delay = config.get("policy_delay")
+        self.noise_std = config.get("noise_std")
+        self.policy_noise = config.get("policy_noise")
+        self.noise_clip = config.get("noise_clip")
+        hidden_dim = config.get("hidden_dim")
         
         # Networks
         self.policy = DeterministicPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
@@ -61,11 +61,11 @@ class TD3Agent(BaseAgent):
         
         # Optimizers
         self.policy_optimizer = torch.optim.Adam(
-            self.policy.parameters(), lr=config.get("actor_lr", 3e-4)
+            self.policy.parameters(), lr=config.get("actor_lr")
         )
         self.critic_optimizer = torch.optim.Adam(
             list(self.critic_1.parameters()) + list(self.critic_2.parameters()),
-            lr=config.get("critic_lr", 3e-4)
+            lr=config.get("critic_lr")
         )
         
         # Training state

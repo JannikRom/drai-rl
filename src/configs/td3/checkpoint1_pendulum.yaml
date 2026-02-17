@@ -1,0 +1,31 @@
+# configs/checkpoint1_pendulum.yaml
+experiment_name: checkpoint1_pendulum_td3
+seed: 42
+
+env_name: Pendulum-v1
+mode: null
+opponent: null
+reward_shaping: {}
+
+agent_type: td3
+gamma: 0.99
+tau: 0.005
+
+# ALL required - missing any will crash
+hidden_dim: 256
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_delay: 2
+noise_std: 0.2
+policy_noise: 0.2
+noise_clip: 0.5
+
+total_timesteps: 100000
+learning_starts: 5000
+batch_size: 128
+replay_capacity: 100000
+
+log_dir: ./logs/td3
+save_interval: 25000
+eval_interval: 10000
+eval_episodes: 5

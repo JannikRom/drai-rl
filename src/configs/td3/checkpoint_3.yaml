@@ -1,0 +1,33 @@
+# configs/checkpoint3_td3.yaml
+experiment_name: checkpoint3_td3_weak
+seed: 0
+
+# Environment
+env_name: Hockey-v0
+mode: NORMAL
+opponent: weak
+reward_shaping:
+  touch_puck: 0.1
+  puck_direction: 0.2
+
+# Agent
+agent_type: td3
+gamma: 0.97
+tau: 0.005
+
+# TD3-specific params
+hidden_dim: 512
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_delay: 2
+noise_std: 0.1
+policy_noise: 0.2
+noise_clip: 0.5
+
+# Training
+total_timesteps: 500000
+learning_starts: 10000
+batch_size: 256
+replay_capacity: 1000000
+
+log_dir: ./logs

@@ -5,7 +5,7 @@ Author: Jannik Rombach
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 import yaml
 from pathlib import Path
 
@@ -19,31 +19,36 @@ class RLConfig:
 
     Unknown params are stored in agent_params for algorithm-specific settings.
     """
-    
-    # Core fields
-    agent_type: str
-    env_name: str
+    # Experiment
+    experiment_name: str
     seed: int = 42
 
-    # Training params
-    total_timesteps: int = 100000
-    batch_size: int = 256
-    learning_starts: int = 10000
-    replay_capacity: int = 1000000
+    # Environment
+    env_name: str = 'Pendulum-v1'
+    mode: Optional[str] = None # Hockey: 'NORMAL', 'TRAIN_SHOOTING' or 'TRAIN_DEFENSE'
+    opponent: Optional[str] = None # Hockey: 'weak' or 'strong'
+    reward_shaping: Dict[str, float] = field(default_factory=dict)
+
+    # Agent
+    agent_type: str = 'td3'
     gamma: float = 0.99
     tau: float = 0.005
-    log_dir: str = "runs"
-
-    # Hockey specific
-    mode: str = "NORMAL"
-    opponent: str = "random"
-    reward_shaping: Dict[str, float] = field(default_factory=lambda: {
-        'touch_puck': 0.0,
-        'puck_direction': 0.0
-    })
-
-    # All agent specific params
+    # All other agent-specific parameters
     agent_params: Dict[str, Any] = field(default_factory=dict)
+    
+
+    # Training
+    total_timesteps: int = 1_000_000
+    learning_starts: int = 10_000
+    batch_size: int = 256
+    replay_capacity: int = 1_000_000
+
+    #Logging
+    log_dir: str = "./logs"
+    save_interval: int = 50_000
+    eval_interval: int = 50_000
+    eval_episodes: int = 10
+
 
     @classmethod
     def from_yaml(cls, config_path: str) -> 'RLConfig':
@@ -55,6 +60,7 @@ class RLConfig:
         Returns:
             RLConfig: RLConfig instance.
         """
+
         config_path = Path(config_path)
         base_path = config_path.parent / "base.yaml"
 
@@ -77,16 +83,24 @@ class RLConfig:
         return cls(**known_params, agent_params=extra_params)
 
     
-    def get(self, key:str, default=None):
+    def get(self, key:str):
         """Get config value from either known fields or agent_params.
 
         Args:
             key (str): Parameter name to retrieve
-            default (_type_, optional): Value to return if key not found.
 
         Returns:
-            Parameter value or defaut if not found.
+            Parameter value
+        Raises:
+            KeyErros: If key not found.
         """
         if hasattr(self, key):
             return getattr(self, key)
-        return self.agent_params.get(key, default)
+        
+        if key in self.agent_params:
+            return self.agent_params[key]
+        
+        raise KeyError(
+            f"Required config key '{key}' not found. "
+            f"Available agent_params: {list(self.agent_params.keys())}"
+        )
