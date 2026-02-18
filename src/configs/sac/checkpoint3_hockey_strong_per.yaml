@@ -1,0 +1,37 @@
+# Checkpoint 3: Hockey Normal Mode vs Strong Opponent (Pink Noise Ablation)
+experiment_name: "checkpoint3_hockey_strong_sac_per"
+seed: 42
+
+# Environment
+env_name: "Hockey-v0"
+mode: "NORMAL"
+opponent: "strong"
+
+# Training
+total_timesteps: 2_000_000
+learning_starts: 10_000
+batch_size: 256
+replay_capacity: 500_000
+
+# Logging
+log_dir: "./logs/sac"
+save_interval: 100_000
+eval_interval: 50_000
+eval_episodes: 20
+
+# Agent
+agent_type: "sac"
+gamma: 0.99
+tau: 0.005
+alpha: 0.2
+
+# Buffer
+buffer_type: "per"
+per_alpha: 0.6
+per_beta_start: 0.4
+per_annealing_pct: 0.8
+
+# SAC Networks
+actor_lr: 0.0003
+critic_lr: 0.0003
+hidden_dim: 256

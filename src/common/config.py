@@ -34,12 +34,12 @@ class RLConfig:
     gamma: float = 0.99
     tau: float = 0.005
 
-    # PER parameters
+    # Buffer parameters
     buffer_type: str = 'rb' # 'rb' for ReplayBuffer, 'per' for PrioritizedReplayBuffer
     per_alpha: float = 0.6
     per_epsilon: float = 1e-6
     per_beta_start: float = 0.4
-
+    per_annealing_pct: float = 0.8
     # All other agent-specific parameters
     agent_params: Dict[str, Any] = field(default_factory=dict)
     

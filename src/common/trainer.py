@@ -105,7 +105,8 @@ class Trainer:
             # Train agent
             if timestep >= self.config.learning_starts:
                 if self.config.get("buffer_type") == "per":
-                    beta = min(1.0, self.per_beta_start + (timestep / self.config.total_timesteps) * (1.0-self.per_beta_start))
+                    progress = (timestep - self.config.learning_starts) / ((self.config.total_timesteps - self.config.learning_starts) * self.config.get("per_annealing_pct"))
+                    beta = min(1.0, self.per_beta_start + progress * (1.0-self.per_beta_start))
                 else:
                     beta = 1.0
                 losses = self.agent.train(self.buffer, self.config.batch_size, beta=beta)
@@ -121,6 +122,8 @@ class Trainer:
                         self.writer.add_scalar('SAC/Alpha', losses['alpha'], timestep)
                         self.writer.add_scalar('SAC/Alpha_Loss', losses['alpha_loss'], timestep)
                         self.writer.add_scalar('SAC/Mean_Log_Prob', losses['mean_log_prob'], timestep)
+                    if self.config.get("buffer_type") == "per":
+                        self.writer.add_scalar('PER/Beta', beta, timestep)
 
             # Episode finished
             if done:
