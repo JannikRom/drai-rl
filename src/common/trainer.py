@@ -1,7 +1,7 @@
 """
 Universal trainer for RL agents with TensorBoard logging.
 
-Author: Jannik Rombach
+Author: Jannik Rombach, Adriano Polzer
 """
 
 import numpy as np
@@ -9,7 +9,7 @@ import torch
 from pathlib import Path
 from torch.utils.tensorboard import SummaryWriter
 from agents.base_agent import BaseAgent
-from common.replay_buffer import ReplayBuffer
+from common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from common.config import RLConfig
 from common.environments import make_env
 
@@ -34,7 +34,15 @@ class Trainer:
         self.env = make_env(config.env_name, config)
 
         # Initialize buffer
-        self.buffer = ReplayBuffer(config.replay_capacity)
+        if config.get("buffer_type") == "per":
+            self.buffer = PrioritizedReplayBuffer(
+                capacity=config.replay_capacity,
+                alpha=float(config.get("per_alpha")),    
+                epsilon=float(config.get("per_epsilon"))
+            )
+            self.per_beta_start = config.get("per_beta_start")
+        else:
+            self.buffer = ReplayBuffer(config.replay_capacity)
 
         # Logging
         self.episode_rewards = []
@@ -96,15 +104,24 @@ class Trainer:
 
             # Train agent
             if timestep >= self.config.learning_starts:
-                losses = self.agent.train(self.buffer, self.config.batch_size)
+                if self.config.get("buffer_type") == "per":
+                    beta = min(1.0, self.per_beta_start + (timestep / self.config.total_timesteps) * (1.0-self.per_beta_start))
+                else:
+                    beta = 1.0
+                losses = self.agent.train(self.buffer, self.config.batch_size, beta=beta)
+                
                 self.training_losses.append(losses)
                 
                 # Log losses to TensorBoard (every 100 steps to avoid overhead)
                 if timestep % 100 == 0:
                     self.writer.add_scalar('Loss/Critic', losses['critic_loss'], timestep)
-                    if losses['actor_loss'] > 0:
+                    if 'actor_loss' in losses and losses['actor_loss'] is not None:
                         self.writer.add_scalar('Loss/Actor', losses['actor_loss'], timestep)
-            
+                    if 'alpha' in losses:
+                        self.writer.add_scalar('SAC/Alpha', losses['alpha'], timestep)
+                        self.writer.add_scalar('SAC/Alpha_Loss', losses['alpha_loss'], timestep)
+                        self.writer.add_scalar('SAC/Mean_Log_Prob', losses['mean_log_prob'], timestep)
+
             # Episode finished
             if done:
                 self.episode_rewards.append(episode_reward)

@@ -20,7 +20,7 @@ import torch.nn as nn
 import numpy as np
 from common.config import RLConfig
 from common.networks import StochasticPolicy, QNetwork
-from common.replay_buffer import ReplayBuffer
+from common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 from agents.base_agent import BaseAgent
 
 
@@ -41,14 +41,14 @@ class SACAgent(BaseAgent):
         print(f"Using device: {self.device}")
         
         # Hyperparameters
-        self.gamma = config.get("gamma", 0.99)
-        self.tau = config.get("tau", 0.005)
-        hidden_dim = config.get("hidden_dim", 256)
+        self.gamma = config.get("gamma")
+        self.tau = config.get("tau")
+        hidden_dim = config.get("hidden_dim")
 
-        self.inital_alpha = config.get("alpha", 0.2)          
+        self.inital_alpha = config.get("alpha")          
         self.target_entropy = -action_dim
         self.log_alpha = torch.tensor(self.inital_alpha, device=self.device).log().detach().requires_grad_(True)
-        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("actor_lr", 3e-4))
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("actor_lr"))
         self.alpha = self.log_alpha.exp()
 
         # Networks
@@ -64,11 +64,11 @@ class SACAgent(BaseAgent):
         
         # Optimizers
         self.actor_optimizer = torch.optim.Adam(
-            self.actor.parameters(), lr=config.get("actor_lr", 3e-4)
+            self.actor.parameters(), lr=config.get("actor_lr")
         )
         self.critic_optimizer = torch.optim.Adam(
             list(self.critic_1.parameters()) + list(self.critic_2.parameters()),
-            lr=config.get("critic_lr", 3e-4)
+            lr=config.get("critic_lr")
         )
         
         # Training state
@@ -80,17 +80,18 @@ class SACAgent(BaseAgent):
         action = self.actor.get_action(state_tensor, deterministic=eval_mode).cpu().numpy().flatten()
         return action
     
-    def train(self, replay_buffer: ReplayBuffer, batch_size: int) -> dict:
+    def train(self, replay_buffer: ReplayBuffer, batch_size: int, beta: float = 1.0) -> dict:
         """Perform one SAC training step."""
+
         # Sample batch
-        states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
-        
+        states, actions, rewards, next_states, dones, indices, weights = replay_buffer.sample(batch_size, beta)
+
         states = torch.FloatTensor(states).to(self.device)
         actions = torch.FloatTensor(actions).to(self.device)
         rewards = torch.FloatTensor(rewards).unsqueeze(1).to(self.device)
         next_states = torch.FloatTensor(next_states).to(self.device)
         dones = torch.FloatTensor(dones).unsqueeze(1).to(self.device)
-        
+        weights = torch.FloatTensor(weights).to(self.device).unsqueeze(1)
         
         with torch.no_grad():
             next_actions, next_log_probs = self.actor.sample(next_states)
@@ -102,15 +103,23 @@ class SACAgent(BaseAgent):
             
             # TD target
             target_q = rewards + self.gamma * (1 - dones) * (target_q - self.alpha.detach() * next_log_probs)
-        
+
         # Update critics
         current_q1 = self.critic_1(states, actions)
         current_q2 = self.critic_2(states, actions)
-        critic_loss = nn.MSELoss()(current_q1, target_q) + nn.MSELoss()(current_q2, target_q)
+        td_error1 = current_q1 - target_q
+        td_error2 = current_q2 - target_q
+        critic_loss = (weights * (td_error1**2 + td_error2**2)).mean() # MSE loss weighted by importance sampling weights
         
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
+        
+        # update priorities in replay buffer if using PER
+        if indices is not None:
+            with torch.no_grad():
+                priorities = (torch.abs(td_error1) + torch.abs(td_error2)).cpu().numpy().flatten() / 2.0
+                replay_buffer.update_priorities(indices, priorities)
         
         new_actions, log_probs = self.actor.sample(states)
         

@@ -1,0 +1,30 @@
+# configs/sac/checkpoint1_pendulum.yaml
+experiment_name: checkpoint1_pendulum_sac_per2
+seed: 42
+
+env_name: Pendulum-v1
+mode: null
+opponent: null
+reward_shaping: {}
+
+agent_type: sac
+gamma: 0.99
+tau: 0.005
+alpha: 0.2
+
+buffer_type: per
+
+# ALL required - missing any will crash
+hidden_dim: 256
+actor_lr: 0.0003
+critic_lr: 0.0003
+
+total_timesteps: 80000
+learning_starts: 5000
+batch_size: 128
+replay_capacity: 100000
+
+log_dir: ./logs/sac
+save_interval: 25000
+eval_interval: 10000
+eval_episodes: 5

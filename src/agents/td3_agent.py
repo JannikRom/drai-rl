@@ -91,16 +91,17 @@ class TD3Agent(BaseAgent):
         """ Resets noise process at episode start (important for correlated noise) """
         self.exploration_noise.reset()
     
-    def train(self, replay_buffer: ReplayBuffer, batch_size: int) -> dict:
+    def train(self, replay_buffer: ReplayBuffer, batch_size: int, beta: float = 1.0) -> dict:
         """Perform one TD3 training step."""
         # Sample batch
-        states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
+        states, actions, rewards, next_states, dones, indices, weights = replay_buffer.sample(batch_size, beta=beta)
         
         states = torch.FloatTensor(states).to(self.device)
         actions = torch.FloatTensor(actions).to(self.device)
         rewards = torch.FloatTensor(rewards).unsqueeze(1).to(self.device)
         next_states = torch.FloatTensor(next_states).to(self.device)
         dones = torch.FloatTensor(dones).unsqueeze(1).to(self.device)
+        weights = torch.FloatTensor(weights).unsqueeze(1).to(self.device)
         
         # Compute target Q-value with target policy smoothing
         with torch.no_grad():
@@ -120,13 +121,22 @@ class TD3Agent(BaseAgent):
         # Update critics
         current_q1 = self.critic_1(states, actions)
         current_q2 = self.critic_2(states, actions)
-        
-        critic_loss = nn.MSELoss()(current_q1, target_q) + nn.MSELoss()(current_q2, target_q)
+        td_error1 = current_q1 - target_q
+        td_error2 = current_q2 - target_q
+        critic_loss = (weights * (td_error1**2 + td_error2**2)).mean() # MSE loss weighted by importance sampling weights
+
+        #critic_loss = nn.MSELoss()(current_q1, target_q) + nn.MSELoss()(current_q2, target_q)
         
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
+        # update priorities in replay buffer if using PER
+        if indices is not None:
+            with torch.no_grad():
+                priorities = (torch.abs(td_error1) + torch.abs(td_error2)).cpu().numpy().flatten() / 2.0
+                replay_buffer.update_priorities(indices, priorities)
+                
         # Delayed policy update
         actor_loss = None
         if self.total_updates % self.policy_delay == 0:

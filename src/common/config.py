@@ -33,6 +33,13 @@ class RLConfig:
     agent_type: str = 'td3'
     gamma: float = 0.99
     tau: float = 0.005
+
+    # PER parameters
+    buffer_type: str = 'rb' # 'rb' for ReplayBuffer, 'per' for PrioritizedReplayBuffer
+    per_alpha: float = 0.6
+    per_epsilon: float = 1e-6
+    per_beta_start: float = 0.4
+
     # All other agent-specific parameters
     agent_params: Dict[str, Any] = field(default_factory=dict)
     
