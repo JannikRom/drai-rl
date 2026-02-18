@@ -35,3 +35,4 @@ noise_clip: 0.5
 
 noise_type: "white" # "white" (baseline) or "pink"
 noise_scale: 0.1 # std dev multiplier
+
