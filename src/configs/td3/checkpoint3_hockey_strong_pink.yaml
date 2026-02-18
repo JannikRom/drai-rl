@@ -1,0 +1,40 @@
+# Checkpoint 3: Hockey Normal Mode vs Strong Opponent (Pink Noise Ablation)
+experiment_name: "checkpoint3_hockey_strong_td3_pink"
+seed: 42
+
+# Environment
+env_name: "Hockey-v0"
+mode: "NORMAL"
+opponent: "strong"
+
+# Training
+total_timesteps: 3_000_000
+learning_starts: 10_000
+batch_size: 256
+replay_capacity: 1_000_000
+
+# Logging
+log_dir: "./logs/td3"
+save_interval: 100_000
+eval_interval: 50_000
+eval_episodes: 20
+
+# Agent
+agent_type: "td3"
+gamma: 0.99
+tau: 0.005
+
+# TD3 Networks
+actor_lr: 0.0003
+critic_lr: 0.001
+hidden_dim: 256
+
+# TD3 Core
+policy_delay: 2
+policy_noise: 0.2 # target policy smoothing
+noise_clip: 0.5
+
+# Exploration Noise
+noise_type: "pink" # "white" (baseline) or "pink"
+noise_scale: 0.1 # std dev multiplier
+pink_beta: 0.9 # correlation strength (pink only)

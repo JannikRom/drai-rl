@@ -11,12 +11,13 @@ from abc import ABC, abstractmethod
 import torch
 import numpy as np
 from pathlib import Path
+from common.config import RLConfig
 
 
 class BaseAgent(ABC):
     """Abstract base class for RL agents."""
     
-    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: dict):
+    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: RLConfig):
         """
         Initialize agent.
         

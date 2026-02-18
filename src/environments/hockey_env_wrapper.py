@@ -25,10 +25,15 @@ class HockeyEnvWrapper(gym.Env):
             self.opponent = None
         
         # Reward shaping weights
-        self.reward_shaping = reward_shaping or {
+        default_shaping = {
+            'closeness_to_puck': 0.0,
             'touch_puck': 0.0,
             'puck_direction': 0.0
         }
+        if reward_shaping:
+            default_shaping.update(reward_shaping)
+        self.reward_shaping = default_shaping
+
 
         # Spaces (agent controls player 1)
         self.observation_space = self.env.observation_space
@@ -41,7 +46,7 @@ class HockeyEnvWrapper(gym.Env):
     def step(self, action):
         # Get opponent action
         if self.opponent is not None:
-            obs_agent2 = self.env.obs_agent_two()
+            obs_agent2 = self.env.unwrapped.obs_agent_two()
             opponent_action = self.opponent.act(obs_agent2)
         else:
             opponent_action = np.zeros(4)

@@ -18,6 +18,7 @@ References:
 import torch
 import torch.nn as nn
 import numpy as np
+from common.config import RLConfig
 from common.networks import StochasticPolicy, QNetwork
 from common.replay_buffer import ReplayBuffer
 from agents.base_agent import BaseAgent
@@ -25,7 +26,7 @@ from agents.base_agent import BaseAgent
 
 class SACAgent(BaseAgent):
     
-    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: dict):
+    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: RLConfig):
         """
         Initialize SAC agent.
         

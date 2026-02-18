@@ -4,17 +4,14 @@ Universal trainer for RL agents with TensorBoard logging.
 Author: Jannik Rombach
 """
 
-import gymnasium as gym
 import numpy as np
 import torch
 from pathlib import Path
-from typing import Optional
 from torch.utils.tensorboard import SummaryWriter
 from agents.base_agent import BaseAgent
 from common.replay_buffer import ReplayBuffer
 from common.config import RLConfig
-from environments.hockey_env_wrapper import HockeyEnvWrapper
-
+from common.environments import make_env
 
 class Trainer:
 
@@ -34,15 +31,7 @@ class Trainer:
         np.random.seed(config.seed)
 
         # Create environment
-        if config.env_name == 'Hockey-v0':
-            self.env = HockeyEnvWrapper(
-                mode=config.mode or 'NORMAL',
-                opponent=config.opponent,
-                reward_shaping=config.reward_shaping
-            )
-        else:
-            self.env = gym.make(config.env_name)
-            self.env.reset(seed=config.seed)
+        self.env = make_env(config.env_name, config)
 
         # Initialize buffer
         self.buffer = ReplayBuffer(config.replay_capacity)
@@ -138,6 +127,10 @@ class Trainer:
                     
                     print(f"Episode {episode_num:4d} | Timestep {timestep:7d} | "
                           f"Avg Reward: {avg_reward:7.2f} | Avg Length: {avg_length:5.1f}")
+                
+                # Exploration Reset
+                if hasattr(self.agent, 'reset_exploration'):
+                    self.agent.reset_exploration()
                     
                 # Reset environment
                 state, _ = self.env.reset()

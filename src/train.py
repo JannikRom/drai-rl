@@ -9,19 +9,11 @@ Author: Jannik Rombach
 """
 
 import argparse
-from pathlib import Path
 from common.config import RLConfig
+from common.environments import get_env_dims
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
 from common.trainer import Trainer
-
-
-# Environment dimensions mapping
-ENV_DIMS = {
-    'Hockey-v0': (18, 4, 1.0),
-    'Pendulum-v1': (3, 1, 1.0),
-    'LunarLanderContinuous-v3': (8, 2, 1.0),
-}
 
 
 def create_agent(config: RLConfig):
@@ -38,10 +30,7 @@ def create_agent(config: RLConfig):
         ValueError: If agent_type or env_name is unknown
     """
     # Get environment dimensions
-    if config.env_name not in ENV_DIMS:
-        raise ValueError(f"Unknown environment: {config.env_name}")
-    
-    state_dim, action_dim, max_action = ENV_DIMS[config.env_name]
+    state_dim, action_dim, max_action = get_env_dims(config.env_name)
     
     # Create agent based on type
     agent_type = config.agent_type.lower()  # Make case-insensitive

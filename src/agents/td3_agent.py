@@ -16,14 +16,16 @@ References:
 import torch
 import torch.nn as nn
 import numpy as np
+from common.config import RLConfig
 from common.networks import DeterministicPolicy, QNetwork
 from common.replay_buffer import ReplayBuffer
 from agents.base_agent import BaseAgent
+from common.noise import get_noise
 
 
 class TD3Agent(BaseAgent):
     
-    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: dict):
+    def __init__(self, state_dim: int, action_dim: int, max_action: float, config: RLConfig):
         """
         Initialize TD3 agent.
         
@@ -41,10 +43,11 @@ class TD3Agent(BaseAgent):
         self.gamma = config.get("gamma")
         self.tau = config.get("tau")
         self.policy_delay = config.get("policy_delay")
-        self.noise_std = config.get("noise_std")
         self.policy_noise = config.get("policy_noise")
         self.noise_clip = config.get("noise_clip")
         hidden_dim = config.get("hidden_dim")
+        
+        self.exploration_noise = get_noise(config=config)
         
         # Networks
         self.policy = DeterministicPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
@@ -79,10 +82,14 @@ class TD3Agent(BaseAgent):
             action = self.policy(state_tensor).cpu().numpy().flatten()
         
         if not eval_mode:
-            noise = np.random.normal(0, self.noise_std * self.max_action, size=self.action_dim)
+            noise = self.exploration_noise.sample()
             action = np.clip(action + noise, -self.max_action, self.max_action)
         
         return action
+    
+    def reset_exploration(self):
+        """ Resets noise process at episode start (important for correlated noise) """
+        self.exploration_noise.reset()
     
     def train(self, replay_buffer: ReplayBuffer, batch_size: int) -> dict:
         """Perform one TD3 training step."""
