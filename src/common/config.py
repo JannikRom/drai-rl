@@ -21,18 +21,18 @@ class RLConfig:
     """
     # Experiment
     experiment_name: str
-    seed: int = 42
+    seed: int
 
     # Environment
-    env_name: str = 'Pendulum-v1'
+    env_name: str 
     mode: Optional[str] = None # Hockey: 'NORMAL', 'TRAIN_SHOOTING' or 'TRAIN_DEFENSE'
     opponent: Optional[str] = None # Hockey: 'weak' or 'strong'
     reward_shaping: Dict[str, float] = field(default_factory=dict)
 
     # Agent
-    agent_type: str = 'td3'
-    gamma: float = 0.99
-    tau: float = 0.005
+    agent_type: str
+    gamma: float
+    tau: float
 
     # Buffer parameters
     buffer_type: str = 'rb' # 'rb' for ReplayBuffer, 'per' for PrioritizedReplayBuffer
@@ -43,18 +43,17 @@ class RLConfig:
     # All other agent-specific parameters
     agent_params: Dict[str, Any] = field(default_factory=dict)
     
-
     # Training
-    total_timesteps: int = 1_000_000
-    learning_starts: int = 10_000
-    batch_size: int = 256
-    replay_capacity: int = 1_000_000
+    total_timesteps: int
+    learning_starts: int
+    batch_size: int
+    replay_capacity: int
 
     #Logging
     log_dir: str = "./logs"
-    save_interval: int = 50_000
-    eval_interval: int = 50_000
-    eval_episodes: int = 10
+    save_interval: int
+    eval_interval: int
+    eval_episodes: int
 
 
     @classmethod

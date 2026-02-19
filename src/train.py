@@ -2,19 +2,30 @@
 Universal training script for RL agents.
 
 Usage:
-    python train.py --config configs/sac/checkpoint1_pendulum.yaml
-    python train.py --config configs/td3/checkpoint3_weak.yaml --seed 42
-    
+    # Standard training
+    python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml
+
+    # Override seed
+    python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml --seed 42
+
+    # Self-play training from scratch
+    python train.py --config configs/td3/selfplay_v1.yaml --selfplay
+
+    # Self-play fine-tune from existing checkpoint
+    python train.py --config configs/td3/selfplay_v1.yaml --selfplay \
+                    --checkpoint logs/td3/checkpoint3_hockey_strong_td3_pink/agent_final.pth
+
 Author: Jannik Rombach
 """
 
 import argparse
+
 from common.config import RLConfig
 from common.environments import get_env_dims
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
-from common.trainer import Trainer
-
+from training.trainer import Trainer
+from training.selfplay_trainer import SelfPlayTrainer
 
 def create_agent(config: RLConfig):
     """
@@ -29,11 +40,9 @@ def create_agent(config: RLConfig):
     Raises:
         ValueError: If agent_type or env_name is unknown
     """
-    # Get environment dimensions
+
     state_dim, action_dim, max_action = get_env_dims(config.env_name)
-    
-    # Create agent based on type
-    agent_type = config.agent_type.lower()  # Make case-insensitive
+    agent_type = config.agent_type.lower() 
     
     if agent_type == 'td3':
         return TD3Agent(state_dim, action_dim, max_action, config)
@@ -44,7 +53,7 @@ def create_agent(config: RLConfig):
     else:
         raise ValueError(
             f"Unknown agent type: '{config.agent_type}'. "
-            f"Available: ['td3', 'sac', 'ppo']"
+            f"Available: ['td3', 'sac']"
         )
 
 
@@ -64,21 +73,43 @@ def main():
         default=None,
         help='Override seed from config'
     )
+    parser.add_argument(
+        '--selfplay',
+        action='store_true',
+        default=False,
+        help='Use SelfPlayTrainer with opponent pool',
+    )
+    parser.add_argument(
+        '--checkpoint',
+        type=str,
+        default=None,
+        metavar='PATH',
+        help='Load pretrained agent from checkpoint before training',
+    )
+
     args = parser.parse_args()
     
     # Load config
     config = RLConfig.from_yaml(args.config)
     
-    # Override seed if provided
     if args.seed is not None:
         print(f"Overriding seed: {config.seed} → {args.seed}")
         config.seed = args.seed
     
     # Create agent
     agent = create_agent(config)
+
+    if args.checkpoint is not None:
+        print(f"Loading agent from checkpoint: {args.checkpoint}")
+        agent.load(args.checkpoint)
     
-    # Create trainer and train
-    trainer = Trainer(agent, config)
+    if args.selfplay:
+        print("Training mode: self-play")
+        trainer = SelfPlayTrainer(agent, config)
+    else:
+        print("Training mode: standard")
+        trainer = Trainer(agent, config)
+
     trainer.train()
     
     print("\n== Training complete ==")

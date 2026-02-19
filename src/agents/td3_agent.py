@@ -45,21 +45,23 @@ class TD3Agent(BaseAgent):
         self.policy_delay = config.get("policy_delay")
         self.policy_noise = config.get("policy_noise")
         self.noise_clip = config.get("noise_clip")
-        hidden_dim = config.get("hidden_dim")
+        
+        actor_hidden_sizes = config.get("actor_hidden_sizes")
+        critic_hidden_sizes = config.get("critic_hidden_sizes")
         
         self.exploration_noise = get_noise(config=config)
         
         # Networks
-        self.policy = DeterministicPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
-        self.policy_target = DeterministicPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
+        self.policy = DeterministicPolicy(state_dim, action_dim, max_action, actor_hidden_sizes).to(self.device)
+        self.policy_target = DeterministicPolicy(state_dim, action_dim, max_action, actor_hidden_sizes).to(self.device)
         self.policy_target.load_state_dict(self.policy.state_dict())
         
-        self.critic_1 = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
-        self.critic_1_target = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
+        self.critic_1 = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
+        self.critic_1_target = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
         self.critic_1_target.load_state_dict(self.critic_1.state_dict())
         
-        self.critic_2 = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
-        self.critic_2_target = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
+        self.critic_2 = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
+        self.critic_2_target = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
         self.critic_2_target.load_state_dict(self.critic_2.state_dict())
         
         # Optimizers

@@ -41,25 +41,27 @@ class SACAgent(BaseAgent):
         print(f"Using device: {self.device}")
         
         # Hyperparameters
-        self.gamma = config.get("gamma")
-        self.tau = config.get("tau")
-        hidden_dim = config.get("hidden_dim")
+        self.gamma = config.get("gamma", 0.99)
+        self.tau = config.get("tau", 0.005)
+
+        actor_hidden_sizes = config.get("actor_hidden_sizes")
+        critic_hidden_sizes = config.get("critic_hidden_sizes")
 
         self.inital_alpha = config.get("alpha")          
         self.target_entropy = -action_dim
         self.log_alpha = torch.tensor(self.inital_alpha, device=self.device).log().detach().requires_grad_(True)
-        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("actor_lr"))
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("alpha_lr", 3e-4))
         self.alpha = self.log_alpha.exp()
 
         # Networks
-        self.actor = StochasticPolicy(state_dim, action_dim, max_action, hidden_dim).to(self.device)
+        self.actor = StochasticPolicy(state_dim, action_dim, max_action, actor_hidden_sizes).to(self.device)
         
-        self.critic_1 = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
-        self.critic_1_target = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
+        self.critic_1 = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
+        self.critic_1_target = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
         self.critic_1_target.load_state_dict(self.critic_1.state_dict())
         
-        self.critic_2 = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
-        self.critic_2_target = QNetwork(state_dim, action_dim, hidden_dim).to(self.device)
+        self.critic_2 = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
+        self.critic_2_target = QNetwork(state_dim, action_dim, critic_hidden_sizes).to(self.device)
         self.critic_2_target.load_state_dict(self.critic_2.state_dict())
         
         # Optimizers

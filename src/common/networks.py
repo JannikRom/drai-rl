@@ -17,7 +17,6 @@ References:
 
 import torch
 import torch.nn as nn
-import numpy as np
 
 class DeterministicPolicy(nn.Module):
     """
@@ -25,38 +24,22 @@ class DeterministicPolicy(nn.Module):
     Maps states to continous actions via μ(s).
     """
 
-    def __init__(self, state_dim: int, action_dim: int, max_action: float, hidden_dim: int = 256):
-        """Initialize deterministic policy network.
-
-        Args:
-            state_dim (int): Dimension of environment observation space.
-            action_dim (int): Dimension of environment action space.
-            max_action (float): Maximum action value for output layer scaling.
-            hidden_dim (int, optional): Number of units in hidden layers. Defaults to 256.
-        """
+    def __init__(self, state_dim: int, action_dim: int, max_action: float, hidden_sizes: list[int] = [256, 256]):
+        """Initialize deterministic policy network."""
         super().__init__()
         self.max_action = max_action
 
-        self.net = nn.Sequential(
-            nn.Linear(state_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, action_dim),
-            nn.Tanh()  # Output in range [-1, 1]
-        )
+        layers = []
+        in_dim = state_dim
+        for h in hidden_sizes:
+            layers += [nn.Linear(in_dim, h), nn.ReLU()]
+            in_dim = h
+        layers += [nn.Linear(in_dim, action_dim), nn.Tanh()]
+
+        self.net = nn.Sequential(*layers)
 
     def forward(self, state: torch.Tensor) -> torch.Tensor:
-        """Compute deterministic action for given state.
-
-        Args:
-            state (torch.Tensor): State tensor of shape (batch_size, state_dim).
-
-        Returns:
-            torch.Tensor: Action tensor of shape (batch_size, action_dim)
-            scaled to range [-max_action, max_action].
-        """
-
+        """Compute deterministic action for given state."""
         return self.max_action * self.net(state)
         
 class StochasticPolicy(nn.Module):
@@ -64,39 +47,23 @@ class StochasticPolicy(nn.Module):
     Stochastic policy network for SAC
     """
     def __init__(self, state_dim: int, action_dim: int, max_action: float, 
-                 hidden_dim: int = 256):
-        """Initialize stochastic policy network.
-
-        Args:
-            state_dim (int): Dimension of environment observation space.
-            action_dim (int): Dimension of environment action space.
-            max_action (float): Maximum action value for output scaling.
-            hidden_dim (int, optional): Number of units in hidden layers. Defaults to 256.
-        """
+                hidden_sizes: list[int] = [256, 256]):
+        """Initialize stochastic policy network."""
         super().__init__()
         self.max_action = max_action
 
-        # Shared feature extraction layers
-        self.backbone = nn.Sequential(
-            nn.Linear(state_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU()
-        )
-        # Separate output heads for mean and log standard deviation
-        self.mu_head = nn.Linear(hidden_dim, action_dim)
-        self.log_std_head = nn.Linear(hidden_dim, action_dim)
+        layers = []
+        in_dim = state_dim
+        for h in hidden_sizes:
+            layers += [nn.Linear(in_dim, h), nn.ReLU()]
+            in_dim = h
+        self.backbone = nn.Sequential(*layers)
+
+        self.mu_head = nn.Linear(in_dim, action_dim)
+        self.log_std_head = nn.Linear(in_dim, action_dim)
 
     def forward(self, state: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute mean and log standard deviation for given state.
-
-        Args:
-            state (torch.Tensor): State tensor of shape (batch_size, state_dim).
-
-        Returns:
-            [torch.Tensor, torch.Tensor]: Mean and log_std tensors, 
-            each of shape (batch_size, action_dim).
-        """
+        """Compute mean and log standard deviation for given state."""
         features = self.backbone(state)
         return self.mu_head(features), self.log_std_head(features)
 
@@ -150,33 +117,22 @@ class QNetwork(nn.Module):
     Maps state-action pairs to expected return via Q(s,a).
     """
 
-    def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 256):
-        """Initialize Q-value network.
-
-        Args:
-            state_dim (int): Dimension of environment observation space.
-            action_dim (int): Dimension of environment action space.
-            hidden_dim (int, optional): Number of units in hidden layers. Defaults to 256.
-        """
+    def __init__(self, state_dim: int, action_dim: int, hidden_sizes: list[int] = [256, 256,128]):
+        """Initialize Q-value network."""
         super().__init__()
 
-        self.net = nn.Sequential(
-            nn.Linear(state_dim + action_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 1)  # Output is scalar Q-value
-        )
+        layers = []
+        in_dim = state_dim + action_dim
+        for h in hidden_sizes:
+            layers += [nn.Linear(in_dim, h), nn.ReLU()]
+            in_dim = h
+
+        layers.append(nn.Linear(in_dim, 1))
+
+        self.net = nn.Sequential(*layers)
 
     def forward(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
-        """Compute Q-value for given state-action pair.
-
-        Args:
-            state (torch.Tensor): State tensor of shape (batch_size, state_dim).
-            action (torch.Tensor): Action tensor of shape (batch_size, action_dim).
-        Returns:
-            torch.Tensor: Q-value tensor of shape (batch_size, 1).
-        """
+        """Compute Q-value for given state-action pair."""
         sa = torch.cat([state, action], dim=-1)
         return self.net(sa)
 
