@@ -32,12 +32,15 @@ class HockeyEnvWrapper(gym.Env):
         default_shaping = {
             'closeness_to_puck': 0.0,
             'touch_puck': 0.0,
-            'puck_direction': 0.0
+            'puck_direction': 0.0,
+            'time_penalty': 0.0,
+            'defensive_distance': 0.0
         }
         if reward_shaping:
             default_shaping.update(reward_shaping)
         self.reward_shaping = default_shaping
-
+        self.step_counter = 0
+        self.max_steps = 250
 
         # Spaces (agent controls player 1, 4-dim action)
         self.observation_space = self.env.observation_space
@@ -48,11 +51,13 @@ class HockeyEnvWrapper(gym.Env):
         self.opponent = opponent
 
     def reset (self, seed = None, options = None):
+        self.step_counter = 0
         obs, info = self.env.reset(seed = seed, options = options)
         return obs, info
     
     def step(self, action):
         # Get opponent action
+        self.step_counter += 1
         if self.opponent is not None:
             obs_agent2 = self.env.unwrapped.obs_agent_two()
             opponent_action = self._get_action(self.opponent, obs_agent2)
@@ -65,11 +70,7 @@ class HockeyEnvWrapper(gym.Env):
         # Step environment
         obs, reward, done, truncated, info = self.env.step(full_action)
 
-        # Apply reward shaping
-        shaped_reward = reward
-        shaped_reward += self.reward_shaping['closeness_to_puck'] * info.get('reward_closeness_to_puck', 0)
-        shaped_reward += self.reward_shaping['touch_puck'] * info.get('reward_touch_puck', 0)
-        shaped_reward += self.reward_shaping['puck_direction'] * info.get('reward_puck_direction', 0)
+        shaped_reward = self._calculate_custom_rewards(obs, reward, info)
 
         return obs, shaped_reward, done, truncated, info
     
@@ -79,6 +80,48 @@ class HockeyEnvWrapper(gym.Env):
     def close(self):
         self.env.close()
 
+    def _calculate_custom_rewards(self, obs, reward, info):
+        # identical with environment
+        SCALE = 60.0 
+        VIEWPORT_W = 600
+        W = VIEWPORT_W / SCALE
+        CENTER_X = W / 2  
+
+        player_pos = obs[0:2] 
+        puck_x = obs[12]
+        puck_vel = obs[14:16]
+        puck_speed = np.sqrt(puck_vel[0]**2 + puck_vel[1]**2)
+
+        # Time Penalty 
+        time_penalty = 0
+        if self.step_counter > (self.max_steps * 0.1):
+            if puck_x < 0 and puck_speed < 0.1 and info.get('reward_touch_puck') == 0:
+                time_penalty = -0.05
+
+        # Defensive Distance Reward 
+        goal_center = np.array([-CENTER_X, 0.0]) 
+        dist_to_goal = np.linalg.norm(player_pos - goal_center)
+        
+        # linear reward based on distance to goal, only if puck is opponents side
+        reward_defensive = 0
+        if puck_x > 0:
+            reward_defensive =  (1.0 / (1.0 + dist_to_goal))
+
+        # Shaping
+        shaping_closeness = self.reward_shaping.get('closeness_to_puck') * info.get('reward_closeness_to_puck', 0)
+        shaping_touch = self.reward_shaping.get('touch_puck') * info.get('reward_touch_puck', 0)
+        shaping_direction = self.reward_shaping.get('puck_direction') * info.get('reward_puck_direction', 0)
+
+        shaping_time = self.reward_shaping.get('time_penalty') * time_penalty
+        shaping_defensive = self.reward_shaping.get('defensive_distance') * reward_defensive
+        total_reward = (reward + 
+                        shaping_closeness + 
+                        shaping_touch + 
+                        shaping_direction + 
+                        shaping_time + 
+                        shaping_defensive)
+        
+        return total_reward
 
     def _get_action(self, opponent, obs: np.ndarray) -> np.ndarray:
         """Unified action interface for BasicOpponent and trained agents."""

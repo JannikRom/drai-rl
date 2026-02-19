@@ -1,5 +1,5 @@
 # configs/sac/checkpoint3.yaml
-experiment_name: checkpoint3_sac_weak
+experiment_name: checkpoint3_sac_weak_test
 seed: 0
 
 # Environment
@@ -20,7 +20,8 @@ tau: 0.005
 hidden_dim: 256
 actor_lr: 0.0003
 critic_lr: 0.0003
-alpha: 0.2
+alpha: 0.8
+alpha_lr: 0.0001
 
 # Training
 total_timesteps: 500000
