@@ -59,8 +59,9 @@ class MatchRunner:
     Supports BasicOpponent (.act) and trained agents (.select_action) on both sides.
     """
 
-    def __init__(self, env_fn):
+    def __init__(self, env_fn, render: bool=False):
         self.env_fn = env_fn
+        self.render = render
 
     def _get_action(self, participant, obs: np.ndarray) -> np.ndarray:
         """Unified action interface for BasicOpponent and trained agents."""
@@ -106,6 +107,10 @@ class MatchRunner:
 
                 combined = np.hstack([action_agent, action_opponent])
                 obs, reward, terminated, truncated, info = env.step(combined)
+
+                if self.render:
+                    env.render()
+
                 done = terminated or truncated
 
                 ep_reward += reward

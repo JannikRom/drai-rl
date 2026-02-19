@@ -41,8 +41,8 @@ class SACAgent(BaseAgent):
         print(f"Using device: {self.device}")
         
         # Hyperparameters
-        self.gamma = config.get("gamma", 0.99)
-        self.tau = config.get("tau", 0.005)
+        self.gamma = config.get("gamma")
+        self.tau = config.get("tau")
 
         actor_hidden_sizes = config.get("actor_hidden_sizes")
         critic_hidden_sizes = config.get("critic_hidden_sizes")
@@ -50,7 +50,7 @@ class SACAgent(BaseAgent):
         self.inital_alpha = config.get("alpha")          
         self.target_entropy = -action_dim
         self.log_alpha = torch.tensor(self.inital_alpha, device=self.device).log().detach().requires_grad_(True)
-        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("alpha_lr", 3e-4))
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=config.get("alpha_lr"))
         self.alpha = self.log_alpha.exp()
 
         # Networks

@@ -1,18 +1,18 @@
 # ===============================================================
-# SAC — Checkpoint 1 — Pendulum-v1 (PER)
+# TD3 — Checkpoint 1 — HalfCheetah-v4
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint1_pendulum_sac_per2"
+experiment_name: "checkpoint1_halfcheetah_td3"
 seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
-agent_type: "sac"
-env_name: "Pendulum-v1"
+agent_type: "td3"
+env_name: "HalfCheetah-v5"
 
 # ---------------------------------------------------------------
 # Agent
@@ -31,36 +31,35 @@ critic_hidden_sizes: [256, 256]
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
 critic_lr: 3.0e-4
-alpha_lr: 3.0e-4
 
 # ---------------------------------------------------------------
-# SAC Specific
+# TD3 Specific
 # ---------------------------------------------------------------
-alpha: 0.2
-target_entropy: "auto"
+policy_noise: 0.2
+noise_clip: 0.5
+policy_delay: 2
+
+noise_type: "white"
+noise_scale: 0.1
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
-buffer_type: "per"
-per_alpha: 0.6
-per_epsilon: 1.0e-6
-per_beta_start: 0.4
-per_annealing_pct: 0.8
+replay_capacity: 1_000_000
+buffer_type: "er"
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard"
-total_timesteps: 80_000
-learning_starts: 5_000
-batch_size: 128
+total_timesteps: 1_000_000
+learning_starts: 10_000
+batch_size: 256
 
 # ---------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------
-log_dir: "./logs/sac"
-save_interval: 25_000
-eval_interval: 10_000
+log_dir: "./logs/td3"
+save_interval: 100_000
+eval_interval: 50_000
 eval_episodes: 5

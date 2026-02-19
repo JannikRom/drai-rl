@@ -1,46 +1,31 @@
 """
-Evaluation entry point for trained RL agents.
+Universal evaluation entry point for trained RL agents.
 
-Loads one or more agent checkpoints, runs them against a fixed
-opponent suite, builds a TrueSkill leaderboard, and saves results.
+Two modes, selected automatically from config:
 
-Usage:
-    # Evaluate a single checkpoint
-    python evaluate.py --agent logs/td3/checkpoint3_hockey_strong_td3_pink/agent_final.pth
-                       --config configs/td3/checkpoint3_hockey_strong_pink.yaml
-                       --episodes 200
-
-    # Evaluate multiple checkpoints and rank them
-    python evaluate.py --agent logs/td3/.../agent_final.pth logs/td3/.../agent_step_500000.pth
-                       --config configs/td3/checkpoint3_hockey_strong_pink.yaml
-                                configs/td3/checkpoint3_hockey_strong.yaml
-                       --episodes 200
-
-    # Load a previous leaderboard and add new agents to it
+  Standard mode  — any Gymnasium environment (Pendulum, LunarLander, etc.)
     python evaluate.py --agent logs/td3/.../agent_final.pth
-                       --config configs/td3/checkpoint3_hockey_strong_pink.yaml
-                       --load-leaderboard logs/eval/leaderboard.json
+                       --config configs/td3/checkpoint1_lunarlander.yaml
+                       --episodes 20 --render
+
+  Hockey tournament mode — full round-robin with TrueSkill leaderboard
+    python evaluate.py --agent logs/td3/.../agent_final.pth logs/td3/.../agent_step_500000.pth
+                       --config configs/td3/checkpoint3_hockey.yaml
+                                configs/td3/checkpoint3_hockey_pink.yaml
+                       --episodes 200 --load-leaderboard logs/eval/leaderboard.json
 
 Author: Jannik Rombach
 """
 
 import argparse
 import sys
+import numpy as np
 from pathlib import Path
 
-import hockey.hockey_env as hockey_env
-
 from common.config import RLConfig
-from common.environments import get_env_dims
+from environments.environments import get_env_dims, make_env
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
-from evaluation.match_runner import MatchRunner
-from evaluation.leaderboard import Leaderboard
-
-
-def make_hockey_env():
-    return hockey_env.HockeyEnv(mode='NORMAL')
-
 
 def load_agent(checkpoint_path: str, config_path: str):
     """Load a trained agent from a checkpoint file using its config."""
@@ -56,114 +41,129 @@ def load_agent(checkpoint_path: str, config_path: str):
         raise ValueError(f"Unsupported agent type: {agent_type}")
 
     agent.load(checkpoint_path)
-    return agent, config.experiment_name
+    return agent, config
 
 
-def build_opponent_suite() -> dict:
-    """Returns the fixed set of basic opponents included in every tournament."""
-    return {
-        "basic_weak": hockey_env.BasicOpponent(weak=True),
+def run_standard_eval(agent, config: RLConfig, n_episodes: int, render: bool, render_every: int = 1):
+    """Evaluate agent on any standard Gynmasium environment."""
+    render_mode = "human" if render else None
+    env = make_env(config.env_name, config, render_mode=render_mode)
+
+    if render:
+        import pygame
+        pygame.init()
+
+    episode_rewards = []
+    episode_lengths = []
+
+    for ep in range (n_episodes):
+        state, _ = env.reset()
+        episode_reward = 0
+        episode_length = 0
+        done = False
+        step = 0
+
+        while not done:
+            action = agent.select_action(state, eval_mode=True)
+            state, reward, terminated, truncated, _ = env.step(action)
+
+            if render and step % render_every == 0:
+                pygame.event.pump()
+
+            done = terminated or truncated
+            episode_reward += reward
+            episode_length += 1
+            step += 1
+        
+        episode_rewards.append(episode_reward)
+        episode_lengths.append(episode_length)
+        print(f"  Episode {ep + 1:3d}/{n_episodes} | "
+              f"Reward: {episode_reward:8.2f} | Length: {episode_length}")
+    
+    env.close()
+
+    print("\n" + "=" * 60)
+    print("EVALUATION RESULTS")
+    print("=" * 60)
+    print(f"Environment:  {config.env_name}")
+    print(f"Checkpoint:   {config.experiment_name}")
+    print(f"Episodes:     {n_episodes}")
+    print(f"Mean Reward:  {np.mean(episode_rewards):.2f} ± {np.std(episode_rewards):.2f}")
+    print(f"Min / Max:    {np.min(episode_rewards):.2f} / {np.max(episode_rewards):.2f}")
+    print(f"Mean Length:  {np.mean(episode_lengths):.1f}")
+    print("=" * 60)
+
+
+# Hockey specific
+def run_hockey_eval(agents: dict, n_episodes: int, render: bool, save_dir: str, tag: str, load_leaderboard: str):
+    """Full round-robin tournament with TrueSkill"""
+    import hockey.hockey_env as hockey_env
+    from evaluation.leaderboard import Leaderboard
+    from evaluation.match_runner import MatchRunner
+
+    def make_hockey_env():
+        return hockey_env.HockeyEnv(mode='NORMAL')
+    
+    opponents = {
+        "basic_weak":   hockey_env.BasicOpponent(weak=True),
         "basic_strong": hockey_env.BasicOpponent(weak=False),
     }
+    all_participants = {**opponents, **agents}
 
+    leaderboard = Leaderboard()
+    if load_leaderboard:
+        leaderboard.load(load_leaderboard)
 
-def run_tournament(
-        all_participants: dict,
-        leaderboard: Leaderboard,
-        runner: MatchRunner,
-        n_episodes: int
-    ) -> None:
-    """
-    Full round-robin tournament: every participant plays as agent against
-    every other participant from both sides (player 1 and player 2).
-    """
+    runner = MatchRunner(env_fn=make_hockey_env, render=render)
+
+    n = len(all_participants)
+    total_matchups = n * (n - 1)
+    print(f"\nTournament: {n} participants, {total_matchups} matchups, "
+          f"{n_episodes} episodes each\n")
+    
     names = list(all_participants.keys())
     pairs = [(a, b) for i, a in enumerate(names) for b in names[i + 1:]]
-    total = len(pairs) * 2
     completed = 0
 
     for name_a, name_b in pairs:
-        participant_a = all_participants[name_a]
-        participant_b = all_participants[name_b]
+        for agent_name, opp_name in [(name_a, name_b), (name_b, name_a)]:
+            completed += 1
+            total = len(pairs) * 2
+            print(f"[{completed}/{total}] {agent_name} vs {opp_name} ...")
+            stats = runner.run(
+                agent=all_participants[agent_name],
+                agent_name=agent_name,
+                opponent=all_participants[opp_name],
+                opponent_name=opp_name,
+                n_episodes=n_episodes,
+                seed=completed * 100,
+            )
+            leaderboard.update(stats)
+            print(f"       {stats.summary()}")
 
-        completed += 1
-        print(f"[{completed}/{total}] {name_a} vs {name_b} ({n_episodes} episodes) ...")
-        stats = runner.run(
-            agent=participant_a,
-            agent_name=name_a,
-            opponent=participant_b,
-            opponent_name=name_b,
-            n_episodes=n_episodes,
-            seed=completed * 100,
-        )
-        leaderboard.update(stats)
-        print(f"       {stats.summary()}")
+    leaderboard.print()
 
-        completed += 1
-        print(f"[{completed}/{total}] {name_b} vs {name_a} ({n_episodes} episodes) ...")
-        stats = runner.run(
-            agent=participant_b,
-            agent_name=name_b,
-            opponent=participant_a,
-            opponent_name=name_a,
-            n_episodes=n_episodes,
-            seed=completed * 100,
-        )
-        leaderboard.update(stats)
-        print(f"       {stats.summary()}")
-
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
+    save_path = str(Path(save_dir) / f"{tag}_leaderboard.json")
+    leaderboard.save(save_path)
+    print(f"\nLeaderboard saved to: {save_path}")
+    
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate trained RL agents")
 
-    parser.add_argument(
-        "--agent",
-        nargs="+",
-        required=True,
-        metavar="CHECKPOINT",
-        help="Path(s) to agent .pth checkpoint files",
-    )
-    parser.add_argument(
-        "--config",
-        nargs="+",
-        required=True,
-        metavar="CONFIG",
-        help="Path(s) to YAML config files — must match --agent order",
-    )
-    parser.add_argument(
-        "--name",
-        nargs="+",
-        default=None,
-        metavar="NAME",
-        help="Optional display names for agents — must match --agent order",
-    )
-    parser.add_argument(
-        "--episodes",
-        type=int,
-        default=200,
-        help="Number of episodes per matchup (default: 200)",
-    )
-    parser.add_argument(
-        "--save-dir",
-        type=str,
-        default="logs/eval",
-        help="Directory to save leaderboard JSON (default: logs/eval)",
-    )
-    parser.add_argument(
-        "--load-leaderboard",
-        type=str,
-        default=None,
-        metavar="JSON",
-        help="Path to a previously saved leaderboard JSON to continue from",
-    )
-    parser.add_argument(
-        "--tag",
-        type=str,
-        default="eval",
-        help="Tag appended to saved leaderboard filename (default: eval)",
-    )
+    parser.add_argument("--agent",  nargs="+", required=True, metavar="CHECKPOINT")
+    parser.add_argument("--config", nargs="+", required=True, metavar="CONFIG")
+    parser.add_argument("--name",   nargs="+", default=None,  metavar="NAME")
+    parser.add_argument("--episodes", type=int, default=10)
+    parser.add_argument("--render", action="store_true")
+    parser.add_argument("--render-every", type=int, default=5)
+    parser.add_argument("--save-dir", type=str, default="logs/eval")
+    parser.add_argument("--load-leaderboard", type=str, default=None, metavar="JSON")
+    parser.add_argument("--tag", type=str, default="eval")
 
     return parser.parse_args()
+
 
 
 def main():
@@ -178,38 +178,44 @@ def main():
         sys.exit(1)
 
     agents = {}
+    first_config = None
     for i, (checkpoint, config_path) in enumerate(zip(args.agent, args.config)):
-        agent, experiment_name = load_agent(checkpoint, config_path)
-        name = args.name[i] if args.name else (experiment_name or Path(checkpoint).stem)
+        agent, config = load_agent(checkpoint, config_path)
+        name = args.name[i] if args.name else (config.experiment_name or Path(checkpoint).stem)
         agents[name] = agent
+        if first_config is None:
+            first_config = config
         print(f"Loaded: {name} from {checkpoint}")
 
-    all_participants = build_opponent_suite()
-    all_participants.update(agents)
+    # Auto-select mode based on env_name
+    is_hockey = "hockey" in first_config.env_name.lower()
 
-    leaderboard = Leaderboard()
-    if args.load_leaderboard:
-        leaderboard.load(args.load_leaderboard)
-
-    runner = MatchRunner(env_fn=make_hockey_env)
-
-    n = len(all_participants)
-    total_matchups = n * (n - 1)
-    print(f"\nTournament: {n} participants, {total_matchups} matchups, "
-          f"{args.episodes} episodes each\n")
-
-    run_tournament(
-        all_participants=all_participants,
-        leaderboard=leaderboard,
-        runner=runner,
-        n_episodes=args.episodes,
-    )
-
-    leaderboard.print()
-
-    save_path = str(Path(args.save_dir) / f"{args.tag}_leaderboard.json")
-    leaderboard.save(save_path)
+    if is_hockey:
+        if len(agents) == 0:
+            print("ERROR: Hockey mode requires at least one agent.")
+            sys.exit(1)
+        run_hockey_eval(
+            agents=agents,
+            n_episodes=args.episodes,
+            render=args.render,
+            save_dir=args.save_dir,
+            tag=args.tag,
+            load_leaderboard=args.load_leaderboard,
+        )
+    else:
+        if len(agents) > 1:
+            print("WARNING: Standard mode only evaluates the first agent. "
+                  "Use hockey mode for multi-agent tournaments.")
+        name, agent = next(iter(agents.items()))
+        run_standard_eval(
+            agent=agent,
+            config=first_config,
+            n_episodes=args.episodes,
+            render=args.render,
+            render_every=args.render_every,
+        )
 
 
 if __name__ == "__main__":
     main()
+

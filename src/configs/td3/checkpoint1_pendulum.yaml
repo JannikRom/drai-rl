@@ -1,31 +1,66 @@
-# configs/checkpoint1_pendulum.yaml
-experiment_name: checkpoint1_pendulum_td3
+# ===============================================================
+# TD3 — Checkpoint 1 — Pendulum-v1
+# ===============================================================
+
+# ---------------------------------------------------------------
+# Experiment
+# ---------------------------------------------------------------
+experiment_name: "checkpoint1_pendulum_td3"
 seed: 42
 
-env_name: Pendulum-v1
-mode: null
-opponent: null
-reward_shaping: {}
+# ---------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------
+agent_type: "td3"
+env_name: "Pendulum-v1"
 
-agent_type: td3
+# ---------------------------------------------------------------
+# Agent
+# ---------------------------------------------------------------
 gamma: 0.99
 tau: 0.005
 
-# ALL required - missing any will crash
-hidden_dim: 256
-actor_lr: 0.0003
-critic_lr: 0.0003
-policy_delay: 2
-noise_std: 0.2
+# ---------------------------------------------------------------
+# Network Architecture
+# ---------------------------------------------------------------
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
+
+# ---------------------------------------------------------------
+# Learning Rates
+# ---------------------------------------------------------------
+actor_lr: 3.0e-4
+critic_lr: 3.0e-4
+
+# ---------------------------------------------------------------
+# TD3 Specific
+# ---------------------------------------------------------------
 policy_noise: 0.2
 noise_clip: 0.5
+policy_delay: 2
 
-total_timesteps: 100000
-learning_starts: 5000
+# Exploration noise
+noise_type: "white"
+noise_scale: 0.1
+
+# ---------------------------------------------------------------
+# Replay Buffer
+# ---------------------------------------------------------------
+replay_capacity: 100_000
+buffer_type: "er"
+
+# ---------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------
+training_mode: "standard"
+total_timesteps: 200_000
+learning_starts: 8_000
 batch_size: 128
-replay_capacity: 100000
 
-log_dir: ./logs/td3
-save_interval: 25000
-eval_interval: 10000
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+log_dir: "./logs/td3"
+save_interval: 25_000
+eval_interval: 10_000
 eval_episodes: 5

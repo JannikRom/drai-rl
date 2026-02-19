@@ -1,35 +1,66 @@
-# configs/checkpoint1_lunarlander.yaml
-# Checkpoint 1: Verify TD3 works on LunarLanderContinuous-v2
+# ===============================================================
+# TD3 — Checkpoint 1 — LunarLanderContinuous-v3
+# ===============================================================
 
-experiment_name: checkpoint1_lunarlander_td3
+# ---------------------------------------------------------------
+# Experiment
+# ---------------------------------------------------------------
+experiment_name: "checkpoint1_lunarlander_td3"
 seed: 42
 
-env_name: LunarLanderContinuous-v3
-mode: null
-opponent: null
-reward_shaping: {}
+# ---------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------
+agent_type: "td3"
+env_name: "LunarLanderContinuous-v3"
 
-agent_type: td3
+# ---------------------------------------------------------------
+# Agent
+# ---------------------------------------------------------------
 gamma: 0.99
 tau: 0.005
 
-# TD3-specific parameters
-hidden_dim: 256
-actor_lr: 0.0003
-critic_lr: 0.0003
-policy_delay: 2
-noise_std: 0.1
+# ---------------------------------------------------------------
+# Network Architecture
+# ---------------------------------------------------------------
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
+
+# ---------------------------------------------------------------
+# Learning Rates
+# ---------------------------------------------------------------
+actor_lr: 3.0e-4
+critic_lr: 3.0e-4
+
+# ---------------------------------------------------------------
+# TD3 Specific
+# ---------------------------------------------------------------
 policy_noise: 0.2
 noise_clip: 0.5
+policy_delay: 2
 
-# Training (LunarLander needs more timesteps)
-total_timesteps: 500000
-learning_starts: 10000
+# Exploration noise
+noise_type: "white"
+noise_scale: 0.1
+
+# ---------------------------------------------------------------
+# Replay Buffer
+# ---------------------------------------------------------------
+replay_capacity: 500_000
+buffer_type: "er"
+
+# ---------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------
+training_mode: "standard"
+total_timesteps: 500_000
+learning_starts: 10_000
 batch_size: 256
-replay_capacity: 500000
 
+# ---------------------------------------------------------------
 # Logging
-log_dir: ./logs/td3
-save_interval: 50000
-eval_interval: 25000
+# ---------------------------------------------------------------
+log_dir: "./logs/td3"
+save_interval: 50_000
+eval_interval: 25_000
 eval_episodes: 5

@@ -1,18 +1,20 @@
 # ===============================================================
-# SAC — Checkpoint 1 — Pendulum-v1 (PER)
+# SAC — Checkpoint 3 — Hockey Normal Mode vs Strong Opponent (PER)
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint1_pendulum_sac_per2"
+experiment_name: "checkpoint3_hockey_strong_sac_per"
 seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
 agent_type: "sac"
-env_name: "Pendulum-v1"
+env_name: "Hockey-v0"
+mode: "NORMAL"
+opponent: "strong"
 
 # ---------------------------------------------------------------
 # Agent
@@ -42,7 +44,7 @@ target_entropy: "auto"
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
+replay_capacity: 500_000
 buffer_type: "per"
 per_alpha: 0.6
 per_epsilon: 1.0e-6
@@ -53,14 +55,14 @@ per_annealing_pct: 0.8
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard"
-total_timesteps: 80_000
-learning_starts: 5_000
-batch_size: 128
+total_timesteps: 2_000_000
+learning_starts: 10_000
+batch_size: 256
 
 # ---------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------
 log_dir: "./logs/sac"
-save_interval: 25_000
-eval_interval: 10_000
-eval_episodes: 5
+save_interval: 100_000
+eval_interval: 50_000
+eval_episodes: 20

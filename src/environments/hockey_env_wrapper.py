@@ -14,15 +14,9 @@ import hockey.hockey_env as hockey_env
 
 class HockeyEnvWrapper(gym.Env):
 
-    def __init__(self, mode='NORMAL', opponent='weak', reward_shaping=None):
-        """Init of HockeyEnvWrapper
-
-        Args:
-            mode (str, optional): 'NORMAL', 'TRAIN_SHOOTING', or 'TRAIN_DEFENSE'
-            opponent (str, optional): 'weak' or 'strong'
-            reward_shaping (_type_, optional): Dict with weights for auxiliary rewards
-        """
-        
+    def __init__(self, mode='NORMAL', opponent='weak', reward_shaping=None, render_mode=None):
+        """Init of HockeyEnvWrapper"""
+        self.render_mode = render_mode
         self.env = gym.make('Hockey-v0', mode=getattr(hockey_env.Mode, mode))
         self.opponent_type = opponent
 

@@ -1,23 +1,25 @@
 # ===============================================================
-# SAC — Checkpoint 1 — Pendulum-v1 (PER)
+# TD3 — Checkpoint 2 — Hockey Shooting
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint1_pendulum_sac_per2"
+experiment_name: "checkpoint2_shooting_td3"
 seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
-agent_type: "sac"
-env_name: "Pendulum-v1"
+agent_type: "td3"
+env_name: "Hockey-v0"
+mode: "TRAIN_SHOOTING"
+opponent: null
 
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.99
+gamma: 0.97
 tau: 0.005
 
 # ---------------------------------------------------------------
@@ -30,37 +32,44 @@ critic_hidden_sizes: [256, 256]
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
-critic_lr: 3.0e-4
-alpha_lr: 3.0e-4
+critic_lr: 1.0e-3
 
 # ---------------------------------------------------------------
-# SAC Specific
+# TD3 Specific
 # ---------------------------------------------------------------
-alpha: 0.2
-target_entropy: "auto"
+policy_noise: 0.2
+noise_clip: 0.8
+policy_delay: 2
+
+# Exploration noise
+noise_type: "pink"
+noise_scale: 0.1
+# if pink noise:
+pink_beta: 1.0
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
 replay_capacity: 100_000
-buffer_type: "per"
-per_alpha: 0.6
-per_epsilon: 1.0e-6
-per_beta_start: 0.4
-per_annealing_pct: 0.8
+buffer_type: "er"
+# if PER:
+# per_alpha: 0.6
+# per_epsilon: 1.0e-6
+# per_beta_start: 0.4
+# per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard"
-total_timesteps: 80_000
-learning_starts: 5_000
-batch_size: 128
+total_timesteps: 200_000
+learning_starts: 10_000
+batch_size: 256
 
 # ---------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------
-log_dir: "./logs/sac"
-save_interval: 25_000
-eval_interval: 10_000
-eval_episodes: 5
+log_dir: "./logs/td3"
+save_interval: 20_000
+eval_interval: 20_000
+eval_episodes: 10

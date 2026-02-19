@@ -2,17 +2,17 @@
 Universal training script for RL agents.
 
 Usage:
-    # Standard training
+    # Standard training (config: training_mode: "standard")
     python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml
 
     # Override seed
     python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml --seed 42
 
-    # Self-play training from scratch
-    python train.py --config configs/td3/selfplay_v1.yaml --selfplay
+    # Self-play training from scratch (config: training_mode: "selfplay")
+    python train.py --config configs/td3/selfplay_v1.yaml
 
     # Self-play fine-tune from existing checkpoint
-    python train.py --config configs/td3/selfplay_v1.yaml --selfplay \
+    python train.py --config configs/td3/selfplay_v1.yaml \
                     --checkpoint logs/td3/checkpoint3_hockey_strong_td3_pink/agent_final.pth
 
 Author: Jannik Rombach
@@ -21,7 +21,7 @@ Author: Jannik Rombach
 import argparse
 
 from common.config import RLConfig
-from common.environments import get_env_dims
+from environments.environments import get_env_dims
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
 from training.trainer import Trainer
@@ -73,12 +73,7 @@ def main():
         default=None,
         help='Override seed from config'
     )
-    parser.add_argument(
-        '--selfplay',
-        action='store_true',
-        default=False,
-        help='Use SelfPlayTrainer with opponent pool',
-    )
+
     parser.add_argument(
         '--checkpoint',
         type=str,
@@ -103,7 +98,8 @@ def main():
         print(f"Loading agent from checkpoint: {args.checkpoint}")
         agent.load(args.checkpoint)
     
-    if args.selfplay:
+    training_mode = config.get("training_mode")
+    if training_mode == 'selfplay':
         print("Training mode: self-play")
         trainer = SelfPlayTrainer(agent, config)
     else:

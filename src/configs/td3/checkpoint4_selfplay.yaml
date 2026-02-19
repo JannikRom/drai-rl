@@ -1,18 +1,20 @@
 # ===============================================================
-# SAC — Checkpoint 1 — Pendulum-v1 (PER)
+# TD3 — Checkpoint 4 — Self-Play
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint1_pendulum_sac_per2"
+experiment_name: "checkpoint4_selfplay_td3"
 seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
-agent_type: "sac"
-env_name: "Pendulum-v1"
+agent_type: "td3"
+env_name: "Hockey-v0"
+mode: "NORMAL"
+opponent: null
 
 # ---------------------------------------------------------------
 # Agent
@@ -30,37 +32,45 @@ critic_hidden_sizes: [256, 256]
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
-critic_lr: 3.0e-4
-alpha_lr: 3.0e-4
+critic_lr: 1.0e-3
 
 # ---------------------------------------------------------------
-# SAC Specific
+# TD3 Specific
 # ---------------------------------------------------------------
-alpha: 0.2
-target_entropy: "auto"
+policy_noise: 0.2
+noise_clip: 0.8
+policy_delay: 2
+
+# Exploration noise
+noise_type: "pink"
+noise_scale: 0.1
+pink_beta: 1.0
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
-buffer_type: "per"
-per_alpha: 0.6
-per_epsilon: 1.0e-6
-per_beta_start: 0.4
-per_annealing_pct: 0.8
+replay_capacity: 1_000_000
+buffer_type: "er"
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard"
-total_timesteps: 80_000
-learning_starts: 5_000
-batch_size: 128
+training_mode: "selfplay"
+total_timesteps: 1_000_000
+learning_starts: 10_000
+batch_size: 256
+
+# Self-Play Pool
+pool_max_size: 20
+pool_update_interval: 500
+pool_update_check_window: 100
+pool_update_eval_episodes: 10
+pool_update_win_rate_threshold: 0.55
 
 # ---------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------
-log_dir: "./logs/sac"
-save_interval: 25_000
-eval_interval: 10_000
-eval_episodes: 5
+log_dir: "./logs/td3"
+save_interval: 50_000
+eval_interval: 25_000
+eval_episodes: 10

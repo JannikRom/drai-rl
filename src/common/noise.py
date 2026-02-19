@@ -14,7 +14,7 @@ References:
 
 import numpy as np
 from common.config import RLConfig
-from common.environments import get_env_dims
+from environments.environments import get_env_dims
 
 class WhiteNoise:
     """

@@ -19,41 +19,29 @@ class RLConfig:
 
     Unknown params are stored in agent_params for algorithm-specific settings.
     """
-    # Experiment
+
+    # Requiered
     experiment_name: str
     seed: int
-
-    # Environment
-    env_name: str 
-    mode: Optional[str] = None # Hockey: 'NORMAL', 'TRAIN_SHOOTING' or 'TRAIN_DEFENSE'
-    opponent: Optional[str] = None # Hockey: 'weak' or 'strong'
-    reward_shaping: Dict[str, float] = field(default_factory=dict)
-
-    # Agent
+    env_name: str
     agent_type: str
     gamma: float
     tau: float
-
-    # Buffer parameters
-    buffer_type: str = 'rb' # 'rb' for ReplayBuffer, 'per' for PrioritizedReplayBuffer
-    per_alpha: float = 0.6
-    per_epsilon: float = 1e-6
-    per_beta_start: float = 0.4
-    per_annealing_pct: float = 0.8
-    # All other agent-specific parameters
-    agent_params: Dict[str, Any] = field(default_factory=dict)
-    
-    # Training
+    training_mode : str
     total_timesteps: int
     learning_starts: int
     batch_size: int
     replay_capacity: int
-
-    #Logging
-    log_dir: str = "./logs"
     save_interval: int
     eval_interval: int
     eval_episodes: int
+
+    # Optional 
+    mode: Optional[str] = None      # Hockey: 'NORMAL', 'TRAIN_SHOOTING', 'TRAIN_DEFENSE'
+    opponent: Optional[str] = None  # Hockey: 'weak', 'strong'
+    reward_shaping: Dict[str, float] = field(default_factory=dict)
+    log_dir: str = "./logs"
+    agent_params: Dict[str, Any] = field(default_factory=dict)
 
 
     @classmethod
