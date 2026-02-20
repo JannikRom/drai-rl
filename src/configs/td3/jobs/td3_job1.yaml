@@ -1,11 +1,11 @@
 # ===============================================================
-# TD3 — v1
+# TD3 — Job1 NoSP NoShape
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_v1"
+experiment_name: "td3_job1_nosp_noshape"
 seed: 42
 
 # ---------------------------------------------------------------
@@ -19,12 +19,12 @@ opponent: null
 # ---------------------------------------------------------------
 # Reward Shaping
 # ---------------------------------------------------------------
-# reward_shaping:
-#   touch_puck: 0.5
-#   puck_direction: 0.5
-#   closeness_to_puck: 0.0
-#   time_penalty: 0.2
-#   defensive_distance: 0.05
+reward_shaping:
+  touch_puck: 0.0
+  puck_direction: 0.0
+  closeness_to_puck: 0.0
+  time_penalty: 0.0
+  defensive_distance: 0.0
 
 # ---------------------------------------------------------------
 # Agent
@@ -36,7 +36,6 @@ tau: 0.005
 # Network Architecture
 # ---------------------------------------------------------------
 actor_hidden_sizes: [256, 256, 256]
-
 critic_hidden_sizes: [256, 256, 128]
 
 # ---------------------------------------------------------------
@@ -59,19 +58,18 @@ pink_beta: 1.0
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 1_000_000
-
+replay_capacity: 3_000_000
 buffer_type: "er"
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "selfplay"
+training_mode: "standard"
 total_timesteps: 3_000_000
 learning_starts: 10_000
 batch_size: 256
 
-# Self-Play Pool
+# Self-Play Pool (disabled)
 pool_max_size: 10
 pool_update_interval: 1000
 pool_update_check_window: 100
@@ -81,8 +79,7 @@ pool_update_win_rate_threshold: 0.60
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/td3"
-
+log_dir: "./logs/td3_job1"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20
@@ -99,7 +96,7 @@ logging:
   log_per: false
   log_sac: false
   log_eval: true
-  log_pool: true
+  log_pool: false
   save_reward_plot: true
   save_numpy_arrays: true
   save_config_yaml: true
