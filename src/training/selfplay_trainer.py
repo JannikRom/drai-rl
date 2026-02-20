@@ -6,8 +6,10 @@ Author: Jannik Rombach
 
 from __future__ import annotations
 
+import copy
 import numpy as np
 import hockey.hockey_env as hockey_env
+import torch
 
 from agents.base_agent import BaseAgent
 from common.config import RLConfig
@@ -34,11 +36,21 @@ class SelfPlayTrainer(StandardTrainer):
         self._episodes_since_last_pool_update = 0
 
         pool_max_size= config.get("pool_max_size")
+        pool_strong_bot_prob = config.get("pool_strong_bot_prob")
+        pool_snapshot_prob = config.get("pool_snapshot_prob")
+        pool_recency_bias = config.get("pool_recency_bias")
 
-        # Seed pool with bots basic opponents
-        self.pool = OpponentPool(max_size = pool_max_size)
-        self.pool.add(hockey_env.BasicOpponent(weak=True), name="BasicOpponent_weak")
-        self.pool.add(hockey_env.BasicOpponent(weak=False), name="BasicOpponent_strong")
+        self.pool = OpponentPool(
+            max_size = pool_max_size,
+            p_strong_bot_prob=pool_strong_bot_prob,
+            p_snapshot_prob = pool_snapshot_prob,
+            recency_bias = pool_recency_bias
+        )
+        
+        self.pool.set_basic_opponents(
+            strong_bot=hockey_env.BasicOpponent(weak=False), 
+            weak_bot=hockey_env.BasicOpponent(weak=True)
+        )
 
         print(f"OpponentPool initialized:       {self.pool}")
         print(f"Pool update interval:           {self.pool_update_interval} episodes")
@@ -110,13 +122,14 @@ class SelfPlayTrainer(StandardTrainer):
 
                 self._maybe_update_pool(episode_num)
 
+                # Sample new opponent after potential pool update
                 opponent = self.pool.sample()
                 self.env.set_opponent(opponent)
 
                 if hasattr(self.agent, 'reset_exploration'):
                     self.agent.reset_exploration()
                 
-                state, _ = self.env.reset(seed=self.config.seed + episode_num)
+                state, _ = self.env.reset()
                 episode_reward = 0.0
                 episode_length = 0
 
@@ -124,7 +137,6 @@ class SelfPlayTrainer(StandardTrainer):
                 eval_reward = self.evaluate(num_episodes=self.config.eval_episodes)
                 self.logger.log_eval(eval_reward, timestep)
                 print(f"  → Eval at step {timestep:7d}: {eval_reward:.2f}")
-                self.env.set_opponent(opponent)  # reset to current pool opponent after eval
 
             if timestep % self.config.save_interval == 0:
                 save_path = self.save_dir / f"agent_step_{timestep}.pth"
@@ -140,27 +152,6 @@ class SelfPlayTrainer(StandardTrainer):
         self.save_results()
         self.logger.close()
         self.env.close()
-
- 
-    def evaluate(self, num_episodes: int = 5) -> float:
-        """Evaluation always against the same opponent: BasicOpponent(weak=False)"""
-        self.env.set_opponent(hockey_env.BasicOpponent(weak=False))
-        rewards = []
-
-        for ep in range(num_episodes):
-            state, _ = self.env.reset(seed=ep)
-            episode_reward = 0.0
-            done = False
-
-            while not done:
-                action = self.agent.select_action(state, eval_mode=True)
-                state, reward, terminated, truncated, _ = self.env.step(action)
-                done = terminated or truncated
-                episode_reward += reward
-
-            rewards.append(episode_reward)
-        
-        return float(np.mean(rewards))
     
     
     def _eval_vs_pool(self) -> float:
@@ -169,23 +160,34 @@ class SelfPlayTrainer(StandardTrainer):
         n = self.pool_update_eval_episodes
 
         for opponent in self.pool.members():
-            self.env.set_opponent(opponent)
+            self.eval_env.set_opponent(opponent)
             for ep in range(n):
-                state, _ = self.env.reset(seed=ep)
+                state, _ = self.eval_env.reset(seed=ep)
                 done = False
 
                 while not done:
                     action = self.agent.select_action(state, eval_mode=True)
-                    state, _, terminated, truncated, info = self.env.step(action)
+                    state, _, terminated, truncated, info = self.eval_env.step(action)
                     done = terminated or truncated
 
                 if info.get('winner', 0) == 1:
                     wins += 1
                 total += 1
 
+        self.eval_env.set_opponent(hockey_env.BasicOpponent(weak=False))
         return wins / total if total > 0 else 0.0
+    
 
+    def _make_frozen_copy(self) -> BaseAgent:
+        """Creates a weight-frozen copy of the current agent for the opponent pool."""
+        frozen = copy.deepcopy(self.agent)
+        for name, module in frozen.named_modules():
+            if isinstance(module, torch.nn.Module() and 
+                          len(list(module.parameters()))) > 0:
+                for param in module.parameters():
+                    param.requires_grad_(False)
         
+        return frozen
 
     def _maybe_update_pool(self, episode_num: int) -> None:
         """
@@ -204,8 +206,9 @@ class SelfPlayTrainer(StandardTrainer):
         self._episodes_since_last_pool_update = 0
 
         if win_rate >= self.pool_update_win_rate_threshold:
+            frozen = self._make_frozen_copy()
             name = f"{self.agent.__class__.__name__}_ep{episode_num}_wr{win_rate:.2f}"
-            self.pool.add(self.agent, name=name)
+            self.pool.add(frozen, name=name)
             self.logger.log_pool(len(self.pool), episode_num, win_rate, avg_reward)
             print(
                 f"  → Pool updated ep {episode_num}: "

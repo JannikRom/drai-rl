@@ -61,11 +61,14 @@ learning_starts: 10_000
 batch_size: 256
 
 # Self-Play Pool
-pool_max_size: 20
+pool_max_size: 10
 pool_update_interval: 500
 pool_update_check_window: 100
 pool_update_eval_episodes: 10
 pool_update_win_rate_threshold: 0.55
+pool_strong_bot_prob: 0.8
+pool_snapshot_prob: 0.5
+pool_recency_bias: 2.0
 
 # ---------------------------------------------------------------
 # Saving

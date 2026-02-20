@@ -54,7 +54,7 @@ buffer_type: "er"
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard"
-total_timesteps: 3_000_000
+total_timesteps: 1_000_000
 learning_starts: 10_000
 batch_size: 256
 

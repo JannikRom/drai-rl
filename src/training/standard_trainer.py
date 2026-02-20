@@ -37,6 +37,12 @@ class StandardTrainer:
         # Create environment
         self.env = make_env(config.env_name, config)
 
+        if config.env_name == 'Hockey-v0':
+            from environments.hockey_env_wrapper import HockeyEnvWrapper
+            self.eval_env = HockeyEnvWrapper(mode='NORMAL', opponent='strong')
+        else:
+            self.eval_env = make_env(config.env_name, config)
+
         # Initialize buffer
         self.buffer = self._build_buffer()
 
@@ -61,7 +67,7 @@ class StandardTrainer:
         self.logger.log_hyperparameters(self._hparams())
 
         state, _ = self.env.reset(seed=self.config.seed)
-        episode_reward = 0
+        episode_reward = 0.0
         episode_length = 0
         episode_num = 0
 
@@ -139,27 +145,23 @@ class StandardTrainer:
         self.save_results()
         self.logger.close()
         self.env.close()
+        self.eval_env.close()
                    
 
     def evaluate(self, num_episodes: int = 5) -> float:
         """
         Evaluate agent performance.
-        
-        Args:
-            num_episodes: Number of episodes to evaluate
-            
-        Returns:
-            Average episode reward
+        For Hockey-v0 this runs against BaisOpponent(weak=False) in eval_env.
         """
         eval_rewards = []
         for _ in range(num_episodes):
-            state, _ = self.env.reset()
+            state, _ = self.eval_env.reset()
             episode_reward = 0
             done = False
 
             while not done:
                 action = self.agent.select_action(state, eval_mode=True)
-                state, reward, terminated, truncated, _ = self.env.step(action)
+                state, reward, terminated, truncated, _ = self.eval_env.step(action)
                 done = terminated or truncated
                 episode_reward += reward
             

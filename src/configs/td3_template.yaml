@@ -74,6 +74,9 @@ batch_size: 256
 # pool_update_check_window: 100
 # pool_update_eval_episodes: 10
 # pool_update_win_rate_threshold: 0.55
+# pool_strong_bot_prob: 0.7
+# pool_snapshot_prob: 0.5
+#pool_recency_bias: 2
 
 # ---------------------------------------------------------------
 # Saving
