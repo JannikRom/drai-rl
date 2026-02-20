@@ -1,34 +1,84 @@
-# Checkpoint 3: Hockey Normal Mode vs Weak Opponent
+# ===============================================================
+# TD3 — Checkpoint 3 — Hockey Normal Mode vs Weak Opponent
+# ===============================================================
+
+# ---------------------------------------------------------------
+# Experiment
+# ---------------------------------------------------------------
 experiment_name: "checkpoint3_hockey_weak_td3"
 seed: 42
 
+# ---------------------------------------------------------------
 # Environment
+# ---------------------------------------------------------------
+agent_type: "td3"
 env_name: "Hockey-v0"
 mode: "NORMAL"
 opponent: "weak"
 
+# ---------------------------------------------------------------
+# Agent
+# ---------------------------------------------------------------
+gamma: 0.99
+tau: 0.005
+
+# ---------------------------------------------------------------
+# Network Architecture
+# ---------------------------------------------------------------
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
+
+# ---------------------------------------------------------------
+# Learning Rates
+# ---------------------------------------------------------------
+actor_lr: 3.0e-4
+critic_lr: 1.0e-3
+
+# ---------------------------------------------------------------
+# TD3 Specific
+# ---------------------------------------------------------------
+policy_noise: 0.2
+noise_clip: 0.5
+policy_delay: 2
+
+noise_type: "white"
+noise_scale: 0.1
+
+# ---------------------------------------------------------------
+# Replay Buffer
+# ---------------------------------------------------------------
+replay_capacity: 1_000_000
+buffer_type: "er"
+
+# ---------------------------------------------------------------
 # Training
+# ---------------------------------------------------------------
+training_mode: "standard"
 total_timesteps: 2_000_000
 learning_starts: 10_000
 batch_size: 256
-replay_capacity: 1_000_000
 
-# Logging
+# ---------------------------------------------------------------
+# Saving
+# ---------------------------------------------------------------
 log_dir: "./logs/td3"
 save_interval: 100_000
 eval_interval: 50_000
 eval_episodes: 20
 
-# Agent
-agent_type: "td3"
-gamma: 0.99
-tau: 0.005
-
-# TD3 specific
-actor_lr: 0.0003
-critic_lr: 0.001
-hidden_dim: 256
-policy_delay: 2
-noise_std: 0.1
-policy_noise: 0.2
-noise_clip: 0.5
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+  print_every_episodes: 10
+  avg_window: 10
+  log_losses: true
+  log_per: false
+  log_sac: false
+  log_eval: true
+  log_pool: false
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

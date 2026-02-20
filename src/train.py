@@ -1,22 +1,23 @@
 """
-Universal training script for RL agents.
+Universal training entry point.
 
 Usage:
-    # Standard training (config: training_mode: "standard")
-    python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml
+    # Standard training
+    python train.py --config configs/td3/hockey_strong.yaml
 
     # Override seed
-    python train.py --config configs/td3/checkpoint3_hockey_strong_pink.yaml --seed 42
+    python train.py --config configs/td3/hockey_strong.yaml --seed 42
 
-    # Self-play training from scratch (config: training_mode: "selfplay")
+    # Self-play from scratch
     python train.py --config configs/td3/selfplay_v1.yaml
 
-    # Self-play fine-tune from existing checkpoint
-    python train.py --config configs/td3/selfplay_v1.yaml \
-                    --checkpoint logs/td3/checkpoint3_hockey_strong_td3_pink/agent_final.pth
+    # Self-play from checkpoint
+    python train.py --config configs/td3/selfplay_v1.yaml --checkpoint logs/td3/run1/agent_final.pth
 
 Author: Jannik Rombach
 """
+
+from __future__ import annotations
 
 import argparse
 
@@ -24,24 +25,16 @@ from common.config import RLConfig
 from environments.environments import get_env_dims
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
-from training.trainer import Trainer
+from training.standard_trainer import StandardTrainer
 from training.selfplay_trainer import SelfPlayTrainer
 
 def create_agent(config: RLConfig):
     """
     Create agent based on config.
-    
-    Args:
-        config: RLConfig object
-        
-    Returns:
-        Instantiated agent
-        
-    Raises:
-        ValueError: If agent_type or env_name is unknown
     """
 
     state_dim, action_dim, max_action = get_env_dims(config.env_name)
+    
     agent_type = config.agent_type.lower() 
     
     if agent_type == 'td3':
@@ -54,6 +47,24 @@ def create_agent(config: RLConfig):
         raise ValueError(
             f"Unknown agent type: '{config.agent_type}'. "
             f"Available: ['td3', 'sac']"
+        )
+
+def create_trainer(agent: TD3Agent | SACAgent, config: RLConfig) -> StandardTrainer | SelfPlayTrainer:
+    """
+    Create trainer based on config.
+    """
+    training_mode = config.get("training_mode").lower()
+    
+    if training_mode == 'selfplay':
+        return SelfPlayTrainer(agent, config)
+    
+    elif training_mode == 'standard':
+        return StandardTrainer(agent, config)
+    
+    else:
+        raise ValueError(
+            f"Unknown training mode: '{training_mode}'. "
+            f"Available: ['standard', 'selfplay']"
         )
 
 
@@ -98,18 +109,10 @@ def main():
         print(f"Loading agent from checkpoint: {args.checkpoint}")
         agent.load(args.checkpoint)
     
-    training_mode = config.get("training_mode")
-    if training_mode == 'selfplay':
-        print("Training mode: self-play")
-        trainer = SelfPlayTrainer(agent, config)
-    else:
-        print("Training mode: standard")
-        trainer = Trainer(agent, config)
-
+    trainer = create_trainer(agent, config)
     trainer.train()
     
-    print("\n== Training complete ==")
-    print(f"Results saved to: {trainer.save_dir}")
+    print(f"\n== Training complete — results in: {trainer.save_dir} ==")
 
 
 if __name__ == "__main__":

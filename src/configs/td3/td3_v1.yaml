@@ -1,11 +1,11 @@
 # ===============================================================
-# TD3 — Checkpoint 3 — Hockey Normal Mode vs Strong Opponent
+# TD3 — v1
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint3_hockey_strong_td3"
+experiment_name: "td3_v1"
 seed: 42
 
 # ---------------------------------------------------------------
@@ -14,56 +14,67 @@ seed: 42
 agent_type: "td3"
 env_name: "Hockey-v0"
 mode: "NORMAL"
-opponent: "strong"
+opponent: null
 
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.99
+gamma: 0.98
 tau: 0.005
 
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256]
-critic_hidden_sizes: [256, 256]
+actor_hidden_sizes: [256, 256, 256]
+
+critic_hidden_sizes: [256, 256, 128]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
-critic_lr: 1.0e-3
+critic_lr: 3.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
 policy_noise: 0.2
-noise_clip: 0.5
+noise_clip: 0.8
 policy_delay: 2
 
-noise_type: "white"
+noise_type: "pink"
 noise_scale: 0.1
+pink_beta: 1.0
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
 replay_capacity: 1_000_000
+
 buffer_type: "er"
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard"
+training_mode: "selfplay"
 total_timesteps: 3_000_000
 learning_starts: 10_000
 batch_size: 256
+
+# Self-Play Pool
+pool_max_size: 10
+pool_update_interval: 1000
+pool_update_check_window: 100
+pool_update_eval_episodes: 20
+pool_update_win_rate_threshold: 0.60
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
 log_dir: "./logs/td3"
+
 save_interval: 100_000
-eval_interval: 50_000
+eval_interval: 25_000
 eval_episodes: 20
 
 # ---------------------------------------------------------------
@@ -78,7 +89,7 @@ logging:
   log_per: false
   log_sac: false
   log_eval: true
-  log_pool: false
+  log_pool: true
   save_reward_plot: true
   save_numpy_arrays: true
   save_config_yaml: true

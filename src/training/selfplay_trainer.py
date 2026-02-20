@@ -9,14 +9,14 @@ from __future__ import annotations
 import numpy as np
 import hockey.hockey_env as hockey_env
 
-from training.trainer import Trainer
-from training.opponent_pool import OpponentPool
 from agents.base_agent import BaseAgent
 from common.config import RLConfig
+from training.standard_trainer import StandardTrainer
+from training.opponent_pool import OpponentPool
 
-class SelfPlayTrainer(Trainer):
+class SelfPlayTrainer(StandardTrainer):
     """
-    Trainer that samples opponents form a grwoing pool of past agent snapshots.
+    Extends StandardTrainer with a growing opponent pool.
     """
 
     def __init__(
@@ -46,17 +46,8 @@ class SelfPlayTrainer(Trainer):
         print(f"Pool update win-rate threshold: {self.pool_update_win_rate_threshold}")
 
     def train(self) -> None:
-        """Self play training loop."""
-        print("=" * 60)
-        print(f"Experiment:  {self.config.experiment_name}")
-        print(f"Agent:       {self.agent.__class__.__name__}")
-        print(f"Mode:        self-play")
-        print(f"Total steps: {self.config.total_timesteps:,}")
-        print(f"Device:      {self.agent.device}")
-        print(f"Seed:        {self.config.seed}")
-        print("=" * 60)
-
-        self._log_hyperparameters()
+        self._print_header()
+        self.logger.log_hyperparameters(self._hparams())
 
         opponent = self.pool.sample()
         self.env.set_opponent(opponent)
@@ -82,23 +73,12 @@ class SelfPlayTrainer(Trainer):
             episode_length += 1
 
             if timestep >= self.config.learning_starts:
-                if self.config.get("buffer_type") == "per":
-                    progress = (timestep - self.config.learning_starts) / (
-                        (self.config.total_timesteps - self.config.learning_starts)
-                        * self.config.get("per_annealing_pct")
-                    )
-                    beta = min(1.0, self.per_beta_start + progress * (1.0 - self.per_beta_start))
-                else:
-                    beta = 1.0
-
+                beta = self._per_beta(timestep) if self.config.get("buffer_type") == "per" else None
                 losses = self.agent.train(self.buffer, self.config.batch_size, beta=beta)
-
                 self.training_losses.append(losses)
 
-                if timestep % 1000 == 0:
-                    self.writer.add_scalar('Loss/Critic', losses['critic_loss'], timestep)
-                    if losses['actor_loss'] > 0:
-                        self.writer.add_scalar('Loss/Actor', losses['actor_loss'], timestep)
+                self.logger.log_losses(losses, timestep)
+                self.logger.log_per_beta(beta, timestep)
 
             if done:
                 self.episode_rewards.append(episode_reward)
@@ -106,20 +86,26 @@ class SelfPlayTrainer(Trainer):
                 episode_num += 1
                 self._episodes_since_last_pool_update += 1
 
-                self.writer.add_scalar('Train/Episode_Reward', episode_reward, episode_num)
-                self.writer.add_scalar('Train/Episode_Length', episode_length, episode_num)
-                self.writer.add_scalar('Train/Pool_Size', len(self.pool), episode_num)
-                self.writer.add_scalar('Train/Winner', info.get('winner', 0), episode_num)
+                self.logger.log_episode(
+                    episode_reward, episode_length, episode_num, timestep,
+                    extra={
+                        "SelfPlay/Winner": float(info.get("winner", 0)),
+                        "SelfPlay/Pool_Size": float(len(self.pool)),
+                    },
+                )
 
-                if episode_num % 10 == 0:
-                    avg_reward = np.mean(self.episode_rewards[-10:])
-                    self.writer.add_scalar('Train/Average_Reward_10', avg_reward, episode_num)
-
+                if self.logger.should_print(episode_num):
+                    self.logger.log_moving_averages(
+                        self.episode_rewards, self.episode_lengths, episode_num
+                    )
+                    w = self.config.logging.avg_window
+                    avg_r = np.mean(self.episode_rewards[-w:])
+                    opp_name = getattr(opponent, "_pool_name", type(opponent).__name__)
                     print(
                         f"Episode {episode_num:4d} | Step {timestep:7d} | "
-                        f"Avg Reward (10ep): {avg_reward:7.2f} | "
+                        f"Avg Reward: {avg_r:7.2f} | "
                         f"Pool: {len(self.pool)}/{self.pool.max_size} | "
-                        f"Opponent: {getattr(opponent, '_pool_name', type(opponent).__name__)}"
+                        f"Opponent: {opp_name}"
                     )
 
                 self._maybe_update_pool(episode_num)
@@ -136,8 +122,9 @@ class SelfPlayTrainer(Trainer):
 
             if timestep % self.config.eval_interval == 0:
                 eval_reward = self.evaluate(num_episodes=self.config.eval_episodes)
-                self.writer.add_scalar('Eval/Reward', eval_reward, timestep)
+                self.logger.log_eval(eval_reward, timestep)
                 print(f"  → Eval at step {timestep:7d}: {eval_reward:.2f}")
+                self.env.set_opponent(opponent)  # reset to current pool opponent after eval
 
             if timestep % self.config.save_interval == 0:
                 save_path = self.save_dir / f"agent_step_{timestep}.pth"
@@ -146,16 +133,15 @@ class SelfPlayTrainer(Trainer):
         
         print("\n" + "=" * 60)
         final_reward = self.evaluate(num_episodes=self.config.eval_episodes)
-        self.writer.add_scalar('Eval/Final_Reward', final_reward, self.config.total_timesteps)
+        self.logger.log_eval(final_reward, self.config.total_timesteps, tag="Final/Eval_Reward")
         print(f"Final Evaluation: {final_reward:.2f}")
         print("=" * 60)
 
         self.save_results()
-        self.writer.close()
+        self.logger.close()
         self.env.close()
 
-        
-       
+ 
     def evaluate(self, num_episodes: int = 5) -> float:
         """Evaluation always against the same opponent: BasicOpponent(weak=False)"""
         self.env.set_opponent(hockey_env.BasicOpponent(weak=False))
@@ -203,34 +189,31 @@ class SelfPlayTrainer(Trainer):
 
     def _maybe_update_pool(self, episode_num: int) -> None:
         """
-        Add current agent to pool if:
-        1. Enough episodes have passed since last update
-        2. Enough reward history is available
-        3. Win-rate vs all pool members >= pool_update_win_rate_threshold
+        Add current agent snapshot to the pool if:
+          1. Enough episodes have passed since the last update.
+          2. Enough reward history is available.
+          3. Win-rate vs all pool members >= threshold.
         """
         if self._episodes_since_last_pool_update < self.pool_update_interval:
             return
         if len(self.episode_rewards) < self.pool_update_check_window:
             return
-        
+
         win_rate = self._eval_vs_pool()
+        avg_reward = float(np.mean(self.episode_rewards[-self.pool_update_check_window:]))
+        self._episodes_since_last_pool_update = 0
 
         if win_rate >= self.pool_update_win_rate_threshold:
-            avg_reward = np.mean(self.episode_rewards[-self.pool_update_check_window:])
             name = f"{self.agent.__class__.__name__}_ep{episode_num}_wr{win_rate:.2f}"
-
             self.pool.add(self.agent, name=name)
-            self._episodes_since_last_pool_update = 0
+            self.logger.log_pool(len(self.pool), episode_num, win_rate, avg_reward)
             print(
-                f"  → Pool updated at episode {episode_num}: "
-                f"win_rate={win_rate:.1%} avg_reward={avg_reward:.2f} | "
-                f"Pool size: {len(self.pool)}"
+                f"  → Pool updated ep {episode_num}: "
+                f"win_rate={win_rate:.1%}  avg_reward={avg_reward:.2f}  "
+                f"pool_size={len(self.pool)}"
             )
-            self.writer.add_scalar('Train/Pool_Update_WinRate', win_rate, episode_num)
-            self.writer.add_scalar('Train/Pool_Update_Reward',  avg_reward, episode_num)
         else:
             print(
-                f"  → Pool update skipped at episode {episode_num}: "
+                f"  → Pool update skipped ep {episode_num}: "
                 f"win_rate={win_rate:.1%} < {self.pool_update_win_rate_threshold:.1%}"
             )
-            self._episodes_since_last_pool_update = 0

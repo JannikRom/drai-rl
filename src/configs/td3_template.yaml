@@ -76,9 +76,35 @@ batch_size: 256
 # pool_update_win_rate_threshold: 0.55
 
 # ---------------------------------------------------------------
-# Logging
+# Saving
 # ---------------------------------------------------------------
 log_dir: "./logs"
 save_interval: 50_000
 eval_interval: 50_000
 eval_episodes: 10
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  # TensorBoard scalar intervals (in timesteps)
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+
+  # Console print interval (in episodes)
+  print_every_episodes: 10
+
+  # Moving-average window for console + TensorBoard
+  avg_window: 10
+
+  # Which scalar groups to write to TensorBoard
+  log_losses: true
+  log_per: false # set true if buffer_type: "per"
+  log_sac: false # TD3 has no SAC scalars
+  log_eval: true
+  log_pool: false # set true if training_mode: "selfplay"
+
+  # Artefacts saved at end of training
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

@@ -4,10 +4,15 @@ Central configuration management for RL training.
 Author: Jannik Rombach
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Optional, Any, Dict
-import yaml
 from pathlib import Path
+from typing import Optional, Any, Dict
+
+import yaml
+
+from common.logging_config import LoggingConfig
 
 @dataclass
 class RLConfig:
@@ -35,12 +40,14 @@ class RLConfig:
     save_interval: int
     eval_interval: int
     eval_episodes: int
+    logging: LoggingConfig
 
     # Optional 
     mode: Optional[str] = None      # Hockey: 'NORMAL', 'TRAIN_SHOOTING', 'TRAIN_DEFENSE'
     opponent: Optional[str] = None  # Hockey: 'weak', 'strong'
     reward_shaping: Dict[str, float] = field(default_factory=dict)
     log_dir: str = "./logs"
+    
     agent_params: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -70,11 +77,13 @@ class RLConfig:
             config_dict.update(specific_config)
 
         known_fields = {field.name for field in cls.__dataclass_fields__.values()}
+
+        logging_cfg = LoggingConfig.from_dict(config_dict.pop("logging", None))
         
         known_params = {k: v for k, v in config_dict.items() if k in known_fields}
         extra_params = {k: v for k, v in config_dict.items() if k not in known_fields}
         
-        return cls(**known_params, agent_params=extra_params)
+        return cls(**known_params, logging=logging_cfg, agent_params=extra_params)
 
     
     def get(self, key:str):

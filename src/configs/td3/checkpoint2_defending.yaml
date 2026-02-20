@@ -41,10 +41,8 @@ policy_noise: 0.2
 noise_clip: 0.8
 policy_delay: 2
 
-# Exploration noise
 noise_type: "pink"
 noise_scale: 0.1
-# if pink noise:
 pink_beta: 1.0
 
 # ---------------------------------------------------------------
@@ -52,11 +50,6 @@ pink_beta: 1.0
 # ---------------------------------------------------------------
 replay_capacity: 100_000
 buffer_type: "er"
-# if PER:
-# per_alpha: 0.6
-# per_epsilon: 1.0e-6
-# per_beta_start: 0.4
-# per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
 # Training
@@ -67,9 +60,26 @@ learning_starts: 10_000
 batch_size: 256
 
 # ---------------------------------------------------------------
-# Logging
+# Saving
 # ---------------------------------------------------------------
 log_dir: "./logs/td3"
 save_interval: 20_000
 eval_interval: 20_000
 eval_episodes: 10
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+  print_every_episodes: 10
+  avg_window: 10
+  log_losses: true
+  log_per: false
+  log_sac: false
+  log_eval: true
+  log_pool: false
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

@@ -1,5 +1,5 @@
 # ===============================================================
-# TD3 — Checkpoint 1 — HalfCheetah-v4
+# TD3 — Checkpoint 1 — HalfCheetah-v5
 # ===============================================================
 
 # ---------------------------------------------------------------
@@ -13,6 +13,8 @@ seed: 42
 # ---------------------------------------------------------------
 agent_type: "td3"
 env_name: "HalfCheetah-v5"
+mode: null
+opponent: null
 
 # ---------------------------------------------------------------
 # Agent
@@ -57,9 +59,26 @@ learning_starts: 10_000
 batch_size: 256
 
 # ---------------------------------------------------------------
-# Logging
+# Saving
 # ---------------------------------------------------------------
 log_dir: "./logs/td3"
 save_interval: 100_000
 eval_interval: 50_000
 eval_episodes: 5
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+  print_every_episodes: 10
+  avg_window: 10
+  log_losses: true
+  log_per: false
+  log_sac: false
+  log_eval: true
+  log_pool: false
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

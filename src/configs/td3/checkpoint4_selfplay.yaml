@@ -56,7 +56,7 @@ buffer_type: "er"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay"
-total_timesteps: 1_000_000
+total_timesteps: 2_000_000
 learning_starts: 10_000
 batch_size: 256
 
@@ -68,9 +68,26 @@ pool_update_eval_episodes: 10
 pool_update_win_rate_threshold: 0.55
 
 # ---------------------------------------------------------------
-# Logging
+# Saving
 # ---------------------------------------------------------------
 log_dir: "./logs/td3"
 save_interval: 50_000
 eval_interval: 25_000
 eval_episodes: 10
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+  print_every_episodes: 10
+  avg_window: 10
+  log_losses: true
+  log_per: false
+  log_sac: false
+  log_eval: true
+  log_pool: true
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

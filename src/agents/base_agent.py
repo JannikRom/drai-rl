@@ -7,10 +7,13 @@ for use with the unified Trainer class.
 Author: Jannik Rombach
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-import torch
+
 import numpy as np
-from pathlib import Path
+import torch
+
 from common.config import RLConfig
 
 
@@ -55,13 +58,14 @@ class BaseAgent(ABC):
         pass
     
     @abstractmethod
-    def train(self, replay_buffer, batch_size: int) -> dict:
+    def train(self, replay_buffer, batch_size: int, beta: float = 1.0) -> dict:
         """
         Perform one training step.
         
         Args:
             replay_buffer: Experience replay buffer
             batch_size: Number of transitions to sample
+            beta: Importance sampling weight (for PER)
             
         Returns:
             Dictionary of loss metrics for logging
@@ -69,11 +73,11 @@ class BaseAgent(ABC):
         pass
     
     @abstractmethod
-    def save(self, path: str):
+    def save(self, path: str, timestep: int = 0) -> None:
         """Save agent parameters to disk."""
         pass
     
     @abstractmethod
-    def load(self, path: str):
+    def load(self, path: str, weights_only: bool = True) -> None:
         """Load agent parameters from disk."""
         pass

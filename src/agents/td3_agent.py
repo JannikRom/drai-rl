@@ -13,9 +13,12 @@ References:
 [2] OpenAI Spinning Up: "Twin Delayed DDPG"
 """
 
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 import numpy as np
+
 from common.config import RLConfig
 from common.networks import DeterministicPolicy, QNetwork
 from common.replay_buffer import ReplayBuffer
@@ -157,30 +160,52 @@ class TD3Agent(BaseAgent):
         
         return {
             "critic_loss": critic_loss.item(),
-            "actor_loss": actor_loss.item() if actor_loss is not None else 0.0
+            "actor_loss": actor_loss.item() if actor_loss is not None else None
         }
+    
+    def save(self, path: str, timestep: int = 0) -> None:
+        torch.save({
+            "timestep": timestep,
+            "total_updates": self.total_updates,
+            "policy": self.policy.state_dict(),
+            "policy_target": self.policy_target.state_dict(),
+            "critic_1": self.critic_1.state_dict(),
+            "critic_1_target": self.critic_1_target.state_dict(),
+            "critic_2": self.critic_2.state_dict(),
+            "critic_2_target": self.critic_2_target.state_dict(),
+            "policy_optimizer": self.policy_optimizer.state_dict(),
+            "critic_optimizer": self.critic_optimizer.state_dict(),
+        }, path)
+    
+    def load(self, path: str, weights_only: bool = True) -> None:
+        ckpt = torch.load(path, map_location=self.device, weights_only=False)
+
+        self.policy.load_state_dict(ckpt["policy"])
+        self.critic_1.load_state_dict(ckpt["critic_1"])
+        self.critic_2.load_state_dict(ckpt["critic_2"])
+
+        # Always restore targets from checkpoint if available
+        if "policy_target" in ckpt:
+            self.policy_target.load_state_dict(ckpt["policy_target"])
+            self.critic_1_target.load_state_dict(ckpt["critic_1_target"])
+            self.critic_2_target.load_state_dict(ckpt["critic_2_target"])
+        else:
+            # Legacy checkpoint — sync targets from main networks
+            self.policy_target.load_state_dict(self.policy.state_dict())
+            self.critic_1_target.load_state_dict(self.critic_1.state_dict())
+            self.critic_2_target.load_state_dict(self.critic_2.state_dict())
+
+        if not weights_only:
+            self.policy_optimizer.load_state_dict(ckpt["policy_optimizer"])
+            self.critic_optimizer.load_state_dict(ckpt["critic_optimizer"])
+            self.total_updates = ckpt.get("total_updates", 0)
+            print(f"Resumed from timestep {ckpt.get('timestep', 'unknown')} "
+                  f"({self.total_updates} updates)")
+        else:
+            print(f"Loaded weights from timestep {ckpt.get('timestep', 'unknown')} "
+                  f"(fine-tune mode)")
     
     def _soft_update(self, source: nn.Module, target: nn.Module):
         """Soft update target networks using Polyak averaging."""
         for target_param, param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
-    
-    def save(self, path: str):
-        """Save current policy and critic networks."""
-        torch.save({
-            "policy": self.policy.state_dict(),
-            "critic_1": self.critic_1.state_dict(),
-            "critic_2": self.critic_2.state_dict()
-        }, path)
-    
-    def load(self, path: str):
-        """Load networks and sync targets."""
-        checkpoint = torch.load(path, map_location=self.device)
-        self.policy.load_state_dict(checkpoint["policy"])
-        self.critic_1.load_state_dict(checkpoint["critic_1"])
-        self.critic_2.load_state_dict(checkpoint["critic_2"])
-        
-        # Sync targets
-        self.policy_target.load_state_dict(self.policy.state_dict())
-        self.critic_1_target.load_state_dict(self.critic_1.state_dict())
-        self.critic_2_target.load_state_dict(self.critic_2.state_dict())
