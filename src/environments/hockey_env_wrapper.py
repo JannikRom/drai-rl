@@ -87,6 +87,9 @@ class HockeyEnvWrapper(gym.Env):
         W = VIEWPORT_W / SCALE
         CENTER_X = W / 2  
 
+        VIEWPORT_GOAL_X = W / 2 - 245 / SCALE - 10 / SCALE
+        OBS_GOAL_X = VIEWPORT_GOAL_X - CENTER_X
+
         player_pos = obs[0:2] 
         puck_x = obs[12]
         puck_vel = obs[14:16]
@@ -99,7 +102,7 @@ class HockeyEnvWrapper(gym.Env):
                 time_penalty = -0.05
 
         # Defensive Distance Reward 
-        goal_center = np.array([-CENTER_X, 0.0]) 
+        goal_center = np.array([OBS_GOAL_X, 0.0]) 
         dist_to_goal = np.linalg.norm(player_pos - goal_center)
         
         # linear reward based on distance to goal, only if puck is opponents side
