@@ -1,7 +1,7 @@
 """
 Standard (singe-agent) trainer
 
-Author: Jannik Rombach
+Author: Jannik Rombach, Adriano Polzer
 """
 
 from __future__ import annotations
@@ -177,6 +177,13 @@ class StandardTrainer:
         if self.config.logging.save_numpy_arrays:
             np.save(self.save_dir / "episode_rewards.npy", self.episode_rewards)
             np.save(self.save_dir / "episode_lengths.npy", self.episode_lengths)
+
+            if self.training_losses:
+                    loss_history = {
+                        key: np.array([step[key] for step in self.training_losses if key in step])
+                        for key in self.training_losses[0].keys()
+                    }
+                    np.savez(self.save_dir / "training_losses.npz", **loss_history)
         
         if self.config.logging.save_config_yaml:
             self._save_config(self.save_dir / "config_used.yaml")
