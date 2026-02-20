@@ -79,7 +79,7 @@ class OpponentPool:
             return self._weak_bot 
     
     def members(self) -> list:
-        return list(self._rotated)
+        return [self._strong_bot, self._weak_bot] + self._rotated
     
     def __len__(self) -> int:
         return len(self._rotated)

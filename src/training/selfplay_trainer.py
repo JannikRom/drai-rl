@@ -181,12 +181,15 @@ class SelfPlayTrainer(StandardTrainer):
     def _make_frozen_copy(self) -> BaseAgent:
         """Creates a weight-frozen copy of the current agent for the opponent pool."""
         frozen = copy.deepcopy(self.agent)
-        for name, module in frozen.named_modules():
-            if isinstance(module, torch.nn.Module() and 
-                          len(list(module.parameters()))) > 0:
-                for param in module.parameters():
+        def disable_gradients(obj, prefix=""):
+            if isinstance(obj, torch.nn.Module):
+                for param in obj.parameters():
                     param.requires_grad_(False)
+            elif hasattr(obj, '__dict__'):
+                for attr_name, attr_value in obj.__dict__.items():
+                    disable_gradients(attr_value, prefix + attr_name + ".")
         
+        disable_gradients(frozen)
         return frozen
 
     def _maybe_update_pool(self, episode_num: int) -> None:
