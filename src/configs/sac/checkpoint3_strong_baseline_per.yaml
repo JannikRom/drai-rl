@@ -1,11 +1,11 @@
 # ===============================================================
-# SAC — Checkpoint 3 — Hockey Normal Mode vs Strong Opponent (PER)
+# SAC — Template
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint3_hockey_strong_sac_per"
+experiment_name: "checkpoint3_strong_per_baseline"
 seed: 42
 
 # ---------------------------------------------------------------
@@ -13,8 +13,13 @@ seed: 42
 # ---------------------------------------------------------------
 agent_type: "sac"
 env_name: "Hockey-v0"
-mode: "NORMAL"
-opponent: "strong"
+mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
+opponent: "strong" # "weak", "strong", null for selfplay
+
+# ---------------------------------------------------------------
+# Reward Shaping
+# ---------------------------------------------------------------
+reward_shaping:
 
 # ---------------------------------------------------------------
 # Agent
@@ -33,19 +38,20 @@ critic_hidden_sizes: [256, 256]
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
 critic_lr: 3.0e-4
-alpha_lr: 3.0e-4
+alpha_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # SAC Specific
 # ---------------------------------------------------------------
-alpha: 0.2
-target_entropy: "auto"
+alpha: 0.6 # Initial entropy coefficient
+target_entropy: "auto" # "auto" → -action_dim, or pass a float
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 500_000
-buffer_type: "per"
+replay_capacity: 1_000_000
+buffer_type: "per" # "er" or "per"
+# if PER:
 per_alpha: 0.6
 per_epsilon: 1.0e-6
 per_beta_start: 0.4
@@ -54,10 +60,17 @@ per_annealing_pct: 0.8
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard"
-total_timesteps: 2_000_000
+training_mode: "standard" # "standard" or "selfplay"
+total_timesteps: 1_000_000
 learning_starts: 10_000
 batch_size: 256
+
+# if selfplay:
+# pool_max_size: 20
+# pool_update_interval: 500
+# pool_update_check_window: 100
+# pool_update_eval_episodes: 10
+# pool_update_win_rate_threshold: 0.55
 
 # ---------------------------------------------------------------
 # Saving
