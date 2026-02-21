@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=drai_hockey
-#SBATCH --array=0-5
+#SBATCH --array=0-3
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=6G
 #SBATCH --partition=week
@@ -21,8 +21,6 @@ CONFIGS=(
   "$REPO/src/configs/td3/jobs/td3_job2.yaml"
   "$REPO/src/configs/td3/jobs/td3_job3.yaml"
   "$REPO/src/configs/td3/jobs/td3_job4.yaml"
-  "$REPO/src/configs/td3/jobs/td3_job5.yaml"
-  "$REPO/src/configs/td3/jobs/td3_job6.yaml"
 )
 
 HOST_CONFIG="${CONFIGS[$SLURM_ARRAY_TASK_ID]}"
