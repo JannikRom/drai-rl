@@ -48,11 +48,11 @@ critic_lr: 3.0e-4
 # TD3 Specific
 # ---------------------------------------------------------------
 policy_noise: 0.2
-noise_clip: 0.8
+noise_clip: 0.5
 policy_delay: 2
 
 noise_type: "pink"
-noise_scale: 0.1
+noise_scale: 0.2
 pink_beta: 1.0
 
 # ---------------------------------------------------------------
