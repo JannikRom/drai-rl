@@ -37,23 +37,36 @@ class OpponentPool:
         self._weak_bot._pool_name   = "BasicOpponent_weak"
 
     def add(self, agent, name: str = None, permanent: bool = False) -> None:
-        """
-        Copy the current agent and add it to the pool.
-        Dropy the oldest entry if max_size is exceeded.
-        """
-        snapshot = copy.deepcopy(agent)
+        """Copy agent weights to new instance and add to pool."""
+        agent_class = type(agent)
+        
+        # Get dims from agent
+        state_dim = agent.state_dim
+        action_dim = agent.action_dim
+        max_action = agent.max_action
 
-        if hasattr(snapshot, "actor"):
+        snapshot = agent_class(state_dim, action_dim, max_action, agent.config)
+        
+        # Copy only inference weights
+        if hasattr(agent, 'actor'):  # SAC
+            snapshot.actor.load_state_dict(agent.actor.state_dict())
             snapshot.actor.eval()
-        if hasattr(snapshot, "critic"):
-            snapshot.critic.eval()
-
-        snapshot._pool_name = name or agent.__class__.__name__
-
+            for param in snapshot.actor.parameters():
+                param.requires_grad_(False)
+        elif hasattr(agent, 'policy'):  # TD3
+            snapshot.policy.load_state_dict(agent.policy.state_dict())
+            snapshot.policy.eval()
+            for param in snapshot.policy.parameters():
+                param.requires_grad_(False)
+        
+        snapshot._pool_name = name or agent_class.__name__
+        
         if len(self._rotated) >= self.max_size:
             self._rotated.pop(0)
-
+        
         self._rotated.append(snapshot)
+
+
 
     def sample(self) -> object:
         """

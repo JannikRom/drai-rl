@@ -1,105 +1,111 @@
 # ===============================================================
-# TD3 — v1
+# SAC — Self-Play Configuration for Hockey-v0
+# Soft Actor-Critic
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_v1"
+experiment_name: "sac_hockey_selfplay"
 seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
-agent_type: "td3"
+agent_type: "sac"
 env_name: "Hockey-v0"
 mode: "NORMAL"
-opponent: null
+opponent: null # selfplay
 
 # ---------------------------------------------------------------
 # Reward Shaping
 # ---------------------------------------------------------------
-# reward_shaping:
-#   touch_puck: 0.5
-#   puck_direction: 0.5
-#   closeness_to_puck: 0.0
-#   time_penalty: 0.2
-#   defensive_distance: 0.05
+reward_shaping:
+  touch_puck: 0.5
+  puck_direction: 0.5
+  closeness_to_puck: 0.0
+  time_penalty: 0.2
+  defensive_distance: 0.05
 
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.98
+gamma: 0.99
 tau: 0.005
 
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256, 256]
-
-critic_hidden_sizes: [256, 256, 128]
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
 critic_lr: 3.0e-4
+alpha_lr: 3.0e-4
 
 # ---------------------------------------------------------------
-# TD3 Specific
+# SAC Specific
 # ---------------------------------------------------------------
-policy_noise: 0.2
-noise_clip: 0.8
-policy_delay: 2
-
-noise_type: "pink"
-noise_scale: 0.1
-pink_beta: 1.0
+alpha: 0.2 # Initial entropy coefficient
+target_entropy: "auto" # "auto" → -action_dim, or pass a float
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
 replay_capacity: 1_000_000
-
-buffer_type: "er"
+buffer_type: "er" # "er" or "per"
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay"
-total_timesteps: 3_000_000
+total_timesteps: 1_000_000
 learning_starts: 10_000
 batch_size: 256
 
-# Self-Play Pool
-pool_max_size: 10
-pool_update_interval: 1000
+# Self-play specific parameters
+pool_max_size: 20
+pool_update_interval: 500
 pool_update_check_window: 100
-pool_update_eval_episodes: 20
-pool_update_win_rate_threshold: 0.60
+pool_update_eval_episodes: 10
+pool_update_win_rate_threshold: 0.55
+pool_strong_bot_prob: 0.7
+pool_snapshot_prob: 0.5
+pool_recency_bias: 2
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/td3"
-
-save_interval: 100_000
-eval_interval: 25_000
-eval_episodes: 20
+log_dir: "./logs"
+save_interval: 50_000
+eval_interval: 50_000
+eval_episodes: 10
 
 # ---------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------
 logging:
+  # TensorBoard scalar intervals (in timesteps)
   loss_every_steps: 100
   per_beta_every_steps: 100
+
+  # Console print interval (in episodes)
   print_every_episodes: 10
+
+  # Moving-average window for console + TensorBoard
   avg_window: 10
+
+  # Which scalar groups to write to TensorBoard
   log_losses: true
-  log_per: false
-  log_sac: false
+  log_per: false # set true if buffer_type: "per"
+  log_sac: true # SAC-specific scalars (alpha, entropy)
   log_eval: true
-  log_pool: true
+  log_pool: true # set true if training_mode: "selfplay"
+
+  # Artefacts saved at end of training
   save_reward_plot: true
   save_numpy_arrays: true
   save_config_yaml: true

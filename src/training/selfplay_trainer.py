@@ -180,17 +180,34 @@ class SelfPlayTrainer(StandardTrainer):
 
     def _make_frozen_copy(self) -> BaseAgent:
         """Creates a weight-frozen copy of the current agent for the opponent pool."""
-        frozen = copy.deepcopy(self.agent)
-        def disable_gradients(obj, prefix=""):
-            if isinstance(obj, torch.nn.Module):
-                for param in obj.parameters():
-                    param.requires_grad_(False)
-            elif hasattr(obj, '__dict__'):
-                for attr_name, attr_value in obj.__dict__.items():
-                    disable_gradients(attr_value, prefix + attr_name + ".")
+        agent_class = type(self.agent)
         
-        disable_gradients(frozen)
+        # Get dims from original agent
+        state_dim = self.agent.state_dim
+        action_dim = self.agent.action_dim
+        max_action = self.agent.max_action
+        
+        # Create fresh agent with SAME config used for original
+        frozen = agent_class(state_dim, action_dim, max_action, self.config)
+        
+        # Copy only inference weights (actor/policy)
+        if hasattr(self.agent, 'actor'):  # SAC
+            frozen.actor.load_state_dict(self.agent.actor.state_dict())
+            frozen.actor.eval()
+            for param in frozen.actor.parameters():
+                param.requires_grad_(False)
+        elif hasattr(self.agent, 'policy'):  # TD3
+            frozen.policy.load_state_dict(self.agent.policy.state_dict())
+            frozen.policy.eval()
+            for param in frozen.policy.parameters():
+                param.requires_grad_(False)
+        else:
+            raise ValueError(f"Agent {agent_class.__name__} must have 'actor' or 'policy' attribute")
+        
+        frozen._pool_name = f"{agent_class.__name__}_frozen"
         return frozen
+
+
 
     def _maybe_update_pool(self, episode_num: int) -> None:
         """

@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_job1_nosp_noshape"
+experiment_name: "td3_job2_shaping"
 seed: 42
 
 # ---------------------------------------------------------------
@@ -14,7 +14,7 @@ seed: 42
 agent_type: "td3"
 env_name: "Hockey-v0"
 mode: "NORMAL"
-opponent: null
+opponent: "strong"
 
 # ---------------------------------------------------------------
 # Reward Shaping
@@ -79,7 +79,7 @@ pool_update_win_rate_threshold: 0.60
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/td3_job1"
+log_dir: "./logs/exp_standard/job2"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20

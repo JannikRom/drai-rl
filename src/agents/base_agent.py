@@ -30,6 +30,7 @@ class BaseAgent(ABC):
             max_action: Maximum absolute value for actions
             config: Hyperparameter dictionary
         """
+        self.config = config
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.max_action = max_action

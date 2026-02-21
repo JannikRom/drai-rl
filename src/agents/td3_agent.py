@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 
 from common.config import RLConfig
@@ -95,9 +96,10 @@ class TD3Agent(BaseAgent):
     def reset_exploration(self):
         """ Resets noise process at episode start (important for correlated noise) """
         self.exploration_noise.reset()
-    
+
     def train(self, replay_buffer: ReplayBuffer, batch_size: int, beta: float = 1.0) -> dict:
-        """Perform one TD3 training step."""
+        """Perform one TD3 training step - FULLY CORRECT."""
+      
         # Sample batch
         states, actions, rewards, next_states, dones, indices, weights = replay_buffer.sample(batch_size, beta=beta)
         
@@ -106,51 +108,60 @@ class TD3Agent(BaseAgent):
         rewards = torch.FloatTensor(rewards).unsqueeze(1).to(self.device)
         next_states = torch.FloatTensor(next_states).to(self.device)
         dones = torch.FloatTensor(dones).unsqueeze(1).to(self.device)
-        weights = torch.FloatTensor(weights).unsqueeze(1).to(self.device)
         
-        # Compute target Q-value with target policy smoothing
+        # PER weights (1.0 for ER buffer)
+        if weights is not None:
+            weights = torch.FloatTensor(weights).unsqueeze(1).to(self.device)
+        else:
+            weights = torch.ones_like(rewards)
+        
+        # Compute target Q-value with polciy smoothing
         with torch.no_grad():
-            target_noise = torch.randn_like(actions) * self.policy_noise * self.max_action
             target_noise = torch.clamp(
-                target_noise, -self.noise_clip * self.max_action, self.noise_clip * self.max_action
-            )
-            next_actions = self.policy_target(next_states) + target_noise
-            next_actions = torch.clamp(next_actions, -self.max_action, self.max_action)
+                torch.randn_like(actions) * self.policy_noise, 
+                -self.noise_clip, self.noise_clip
+            ) * self.max_action
             
-            # Clipped double-Q
+            next_actions = (self.policy_target(next_states) + target_noise).clamp(-self.max_action, self.max_action)
+            
             target_q1 = self.critic_1_target(next_states, next_actions)
             target_q2 = self.critic_2_target(next_states, next_actions)
             target_q = torch.min(target_q1, target_q2)
-            target_q = rewards + (1 - dones) * self.gamma * target_q
+            
+            y = rewards + self.gamma * (1 - dones) * target_q
         
         # Update critics
         current_q1 = self.critic_1(states, actions)
         current_q2 = self.critic_2(states, actions)
-        td_error1 = current_q1 - target_q
-        td_error2 = current_q2 - target_q
-        critic_loss = (weights * (td_error1**2 + td_error2**2)).mean() # MSE loss weighted by importance sampling weights
-
-        #critic_loss = nn.MSELoss()(current_q1, target_q) + nn.MSELoss()(current_q2, target_q)
+        
+        critic_loss1 = weights * F.mse_loss(current_q1, y, reduction='none')
+        critic_loss2 = weights * F.mse_loss(current_q2, y, reduction='none')
+        critic_loss = (critic_loss1 + critic_loss2).mean()
         
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
         # update priorities in replay buffer if using PER
-        if indices is not None:
-            with torch.no_grad():
-                priorities = (torch.abs(td_error1) + torch.abs(td_error2)).cpu().numpy().flatten() / 2.0
-                replay_buffer.update_priorities(indices, priorities)
-                
+        if indices is not None and len(indices) > 0:
+            td_error = torch.min(
+                F.mse_loss(current_q1, y, reduction='none').mean(dim=1, keepdim=False),
+                F.mse_loss(current_q2, y, reduction='none').mean(dim=1, keepdim=False)
+            ).detach().cpu().numpy().flatten() + 1e-6  # Avoid zero priority
+            replay_buffer.update_priorities(indices, td_error)
+        
         # Delayed policy update
         actor_loss = None
         if self.total_updates % self.policy_delay == 0:
-            actor_loss = -self.critic_1(states, self.policy(states)).mean()
+    
+            actor_actions = self.policy(states)
+            actor_loss = -self.critic_1(states, actor_actions).mean()
             
             self.policy_optimizer.zero_grad()
             actor_loss.backward()
             self.policy_optimizer.step()
             
+
             # Soft update targets
             self._soft_update(self.policy, self.policy_target)
             self._soft_update(self.critic_1, self.critic_1_target)
@@ -160,8 +171,13 @@ class TD3Agent(BaseAgent):
         
         return {
             "critic_loss": critic_loss.item(),
-            "actor_loss": actor_loss.item() if actor_loss is not None else None
+            "actor_loss": actor_loss.item() if actor_loss is not None else None,
+            "q1_mean": current_q1.mean().item(),
+            "q2_mean": current_q2.mean().item(),
+            "target_q_mean": target_q.mean().item()
         }
+
+    
     
     def save(self, path: str, timestep: int = 0) -> None:
         torch.save({
