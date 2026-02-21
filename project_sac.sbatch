@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=hockey_rl
-#SBATCH --array=0-5
+#SBATCH --array=0-2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=6G
 
@@ -9,7 +9,7 @@
 
 #SBATCH --gres=gpu:1
 
-#SBATCH --time=40:00:00
+#SBATCH --time=50:00:00
 
 #SBATCH --error=job.%J.err
 #SBATCH --output=job.%J.out
@@ -19,12 +19,9 @@
 
 cd ~/drai-rl
 CONFIGS=(
-  "src/configs/cluster/checkpoint3_strong_baseline_er.yaml"
-  "src/configs/cluster/checkpoint3_strong_baseline_per.yaml"
-  "src/configs/cluster/checkpoint4_selfplay_baseline_er.yaml"
-  "src/configs/cluster/checkpoint4_selfplay_custom_rewards.yaml"
-  "src/configs/cluster/chekpoint3_strong_custom_reward_high_er.yaml"
-  "src/configs/cluster/chekpoint3_strong_custom_reward_low_er.yaml"
+  "src/configs/sac_job1.yaml"
+  "src/configs/sac_job2.yaml"
+  "src/configs/sac_job3.yaml"
 )
 
 SELECTED_CONFIG=${CONFIGS[$SLURM_ARRAY_TASK_ID]}

@@ -6,7 +6,7 @@
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint4_selfplay_er_baseline"
+experiment_name: "checkpoint4_selfplay_custom_rewards"
 seed: 42
 
 # ---------------------------------------------------------------
@@ -21,12 +21,12 @@ opponent: null # "weak", "strong", null for selfplay
 # ---------------------------------------------------------------
 # Reward Shaping
 # ---------------------------------------------------------------
-# reward_shaping:
-#   touch_puck: 0.5
-#   puck_direction: 0.5
-#   closeness_to_puck: 0.0
-#   time_penalty: 0.2
-#   defensive_distance: 0.05
+reward_shaping:
+  touch_puck: 0.4
+  puck_direction: 0.3
+  closeness_to_puck: 0.0
+  time_penalty: 0.2
+  defensive_distance: 0.01
 
 # ---------------------------------------------------------------
 # Agent
@@ -68,7 +68,7 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay" # "standard" or "selfplay"
-total_timesteps: 3_000_000
+total_timesteps: 5_000_000
 learning_starts: 10_000
 batch_size: 256
 
@@ -85,9 +85,9 @@ pool_recency_bias: 2
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/er_selfplay/"
+log_dir: "./logs/selfplay/"
 save_interval: 500_000
-eval_interval: 100_000
+eval_interval: 500_000
 eval_episodes: 10
 
 # ---------------------------------------------------------------
