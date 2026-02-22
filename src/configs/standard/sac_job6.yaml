@@ -1,0 +1,98 @@
+# ===============================================================
+# SAC — Template
+# ===============================================================
+
+# ---------------------------------------------------------------
+# Experiment
+# ---------------------------------------------------------------
+experiment_name: "checkpoint3_strong_baseline"
+seed: 3
+
+# ---------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------
+agent_type: "sac"
+env_name: "Hockey-v0"
+mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
+opponent: "strong" # "weak", "strong", null for selfplay
+
+# ---------------------------------------------------------------
+# Reward Shaping
+# ---------------------------------------------------------------
+reward_shaping:
+
+# ---------------------------------------------------------------
+# Agent
+# ---------------------------------------------------------------
+gamma: 0.98
+tau: 0.005
+
+# ---------------------------------------------------------------
+# Network Architecture
+# ---------------------------------------------------------------
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256, 128]
+
+# ---------------------------------------------------------------
+# Learning Rates
+# ---------------------------------------------------------------
+actor_lr: 3.0e-4
+critic_lr: 3.0e-4
+alpha_lr: 1.0e-4
+
+# ---------------------------------------------------------------
+# SAC Specific
+# ---------------------------------------------------------------
+alpha: 0.6 # Initial entropy coefficient
+target_entropy: "auto" # "auto" → -action_dim, or pass a float
+
+# ---------------------------------------------------------------
+# Replay Buffer
+# ---------------------------------------------------------------
+replay_capacity: 1_000_000
+buffer_type: "er" # "er" or "per"
+# if PER:
+# per_alpha: 0.6
+# per_epsilon: 1.0e-6
+# per_beta_start: 0.4
+# per_annealing_pct: 0.8
+
+# ---------------------------------------------------------------
+# Training
+# ---------------------------------------------------------------
+training_mode: "standard" # "standard" or "selfplay"
+total_timesteps: 2_000_000
+learning_starts: 10_000
+batch_size: 256
+
+# if selfplay:
+# pool_max_size: 20
+# pool_update_interval: 500
+# pool_update_check_window: 100
+# pool_update_eval_episodes: 10
+# pool_update_win_rate_threshold: 0.55
+
+# ---------------------------------------------------------------
+# Saving
+# ---------------------------------------------------------------
+log_dir: "./logs/standard/"
+save_interval: 100_000
+eval_interval: 50_000
+eval_episodes: 20
+
+# ---------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------
+logging:
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+  print_every_episodes: 10
+  avg_window: 10
+  log_losses: true
+  log_per: true
+  log_sac: true
+  log_eval: true
+  log_pool: false
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

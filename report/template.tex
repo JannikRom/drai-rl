@@ -9,7 +9,7 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{amsmath}       % blackboard math symbols
 \usepackage{amssymb}
-
+\usepackage{acronym}
 \usepackage{lipsum}
 
 \usepackage{geometry}
@@ -28,7 +28,7 @@
 
 \setlength{\parindent}{0pt}
 
-\team{Your-great-team: Anna Musterfrau, Max Mustermann}
+\team{DRAI: Jannik Rombach, Adriano Polzer}
 \title{RL-Course 2025/26: Final Project Report}
 \author{\theteam}
 
@@ -39,8 +39,9 @@
 \input{chapters/02_method.tex}
 \input{chapters/03_evaluation.tex}
 \input{chapters/04_discussion.tex}
-
 \bibliographystyle{abbrv}
-\bibliography{main}
-
+\bibliography{literatur}
+\begin{acronym}
+\acro{SAC}{Soft Actor-Critic}
+\end{acronym}
 \end{document}

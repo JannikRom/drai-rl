@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=hockey_rl
-#SBATCH --array=0-2
+#SBATCH --array=0-4
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=6G
 
@@ -22,6 +22,8 @@ CONFIGS=(
   "src/configs/sac_job1.yaml"
   "src/configs/sac_job2.yaml"
   "src/configs/sac_job3.yaml"
+  "src/configs/sac_job4.yaml"
+  "src/configs/sac_job5.yaml"
 )
 
 SELECTED_CONFIG=${CONFIGS[$SLURM_ARRAY_TASK_ID]}
