@@ -15,14 +15,15 @@ import numpy as np
 from agents.sac_agent import SACAgent
 from agents.td3_agent import TD3Agent
 from common.config import RLConfig
+import os
 
+THIS_DIR = os.path.dirname(__file__)
 
+SAC_CHECKPOINT = os.path.join(THIS_DIR, "strong_sac.pth")
+SAC_CONFIG = os.path.join(THIS_DIR, "strong_sac.yaml")
+TD3_CHECKPOINT = os.path.join(THIS_DIR, "strong_td3.pth")
+TD3_CONFIG = os.path.join(THIS_DIR, "strong_td3.yaml")
 
-SAC_CHECKPOINT = "environments/strong_sac.pth" 
-SAC_CONFIG = "environments/strong_sac.yaml" 
-
-TD3_CHECKPOINT = "environments/strong_td3.pth" 
-TD3_CONFIG = "environments/strong_td3.yaml" 
 
 class OpponentPool:
     """
