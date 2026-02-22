@@ -79,7 +79,7 @@ pool_update_win_rate_threshold: 0.60
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "/logs_v2/td3_job2"
+log_dir: "./logs_v2/td3_job2"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20
