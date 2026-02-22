@@ -1,12 +1,12 @@
 # ===============================================================
-# TD3 — Job1 NoSP NoShape
+# TD3 — Job1 Dense Rewards
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_job1_nosp_noshape"
-seed: 42
+experiment_name: "td3_job1_dense_reward"
+seed: 3
 
 # ---------------------------------------------------------------
 # Environment
@@ -14,18 +14,17 @@ seed: 42
 agent_type: "td3"
 env_name: "Hockey-v0"
 mode: "NORMAL"
-opponent: "strong"
+opponent: null
 
 # ---------------------------------------------------------------
 # Reward Shaping
 # ---------------------------------------------------------------
 reward_shaping:
-  touch_puck: 0.0
-  puck_direction: 0.0
+  touch_puck: 0.1
+  puck_direction: 0.05
   closeness_to_puck: 0.0
   time_penalty: 0.0
-  defensive_distance: 0.0
-
+  defensive_distance: 0.05
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
@@ -41,8 +40,8 @@ critic_hidden_sizes: [256, 256, 128]
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 3.0e-4
-critic_lr: 3.0e-4
+actor_lr: 1.0e-4
+critic_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
@@ -64,22 +63,25 @@ buffer_type: "er"
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard"
-total_timesteps: 3_000_000
+training_mode: "selfplay"
+total_timesteps: 4_000_000
 learning_starts: 10_000
 batch_size: 256
 
-# Self-Play Pool (disabled)
+# Self-Play Pool
 pool_max_size: 10
-pool_update_interval: 1000
+pool_update_interval: 10_000
 pool_update_check_window: 100
 pool_update_eval_episodes: 20
-pool_update_win_rate_threshold: 0.60
+pool_update_win_rate_threshold: 0.70
+pool_strong_bot_prob: 0.8
+pool_snapshot_prob: 0.5
+pool_recency_bias: 2.0
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_v2/td3_job1"
+log_dir: "./logs_v3/td3_job1"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20
@@ -90,13 +92,13 @@ eval_episodes: 20
 logging:
   loss_every_steps: 100
   per_beta_every_steps: 100
-  print_every_episodes: 10
+  print_every_episodes: 1000
   avg_window: 10
   log_losses: true
   log_per: false
   log_sac: false
   log_eval: true
-  log_pool: false
+  log_pool: true
   save_reward_plot: true
   save_numpy_arrays: true
   save_config_yaml: true

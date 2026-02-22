@@ -41,6 +41,8 @@ class RLConfig:
     eval_interval: int
     eval_episodes: int
     logging: LoggingConfig
+    use_fixed_opponent: bool = False
+    
 
     # Optional 
     mode: Optional[str] = None      # Hockey: 'NORMAL', 'TRAIN_SHOOTING', 'TRAIN_DEFENSE'

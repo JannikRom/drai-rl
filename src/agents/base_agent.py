@@ -15,11 +15,11 @@ import numpy as np
 import torch
 
 from common.config import RLConfig
+from environments.environments import get_env_dims
 
 
 class BaseAgent(ABC):
     """Abstract base class for RL agents."""
-    
     def __init__(self, state_dim: int, action_dim: int, max_action: float, config: RLConfig):
         """
         Initialize agent.

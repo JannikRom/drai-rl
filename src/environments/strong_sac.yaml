@@ -1,20 +1,25 @@
 # ===============================================================
-# TD3 — Checkpoint 1 — Pendulum-v1
+# SAC — Template
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint1_pendulum_td3"
-seed: 3
+experiment_name: "checkpoint3_strong_er_baseline"
+seed: 42
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
-agent_type: "td3"
-env_name: "Pendulum-v1"
-mode: null
-opponent: null
+agent_type: "sac"
+env_name: "Hockey-v0"
+mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
+opponent: "strong" # "weak", "strong", null for selfplay
+
+# ---------------------------------------------------------------
+# Reward Shaping
+# ---------------------------------------------------------------
+reward_shaping:
 
 # ---------------------------------------------------------------
 # Agent
@@ -33,38 +38,47 @@ critic_hidden_sizes: [256, 256]
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
 critic_lr: 3.0e-4
+alpha_lr: 1.0e-4
 
 # ---------------------------------------------------------------
-# TD3 Specific
+# SAC Specific
 # ---------------------------------------------------------------
-policy_noise: 0.2
-noise_clip: 0.5
-policy_delay: 2
-
-noise_type: "white"
-noise_scale: 0.1
+alpha: 0.6 # Initial entropy coefficient
+target_entropy: "auto" # "auto" → -action_dim, or pass a float
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
-buffer_type: "er"
+replay_capacity: 1_000_000
+buffer_type: "er" # "er" or "per"
+# if PER:
+# per_alpha: 0.6
+# per_epsilon: 1.0e-6
+# per_beta_start: 0.4
+# per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard"
-total_timesteps: 200_000
-learning_starts: 8_000
-batch_size: 128
+training_mode: "standard" # "standard" or "selfplay"
+total_timesteps: 1_000_000
+learning_starts: 10_000
+batch_size: 256
+
+# if selfplay:
+# pool_max_size: 20
+# pool_update_interval: 500
+# pool_update_check_window: 100
+# pool_update_eval_episodes: 10
+# pool_update_win_rate_threshold: 0.55
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/td3"
-save_interval: 25_000
-eval_interval: 10_000
-eval_episodes: 5
+log_dir: "./logs/er/"
+save_interval: 500_000
+eval_interval: 100_000
+eval_episodes: 20
 
 # ---------------------------------------------------------------
 # Logging
@@ -75,8 +89,8 @@ logging:
   print_every_episodes: 10
   avg_window: 10
   log_losses: true
-  log_per: false
-  log_sac: false
+  log_per: true
+  log_sac: true
   log_eval: true
   log_pool: false
   save_reward_plot: true

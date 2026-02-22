@@ -1,12 +1,12 @@
 # ===============================================================
-# TD3 — Job3 SP Baseline
+# TD3 — Job3 Fixed opponent lower strong bot prob
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_job3_sp_baseline"
-seed: 42
+experiment_name: "td3_job3_fixed_opponent_lower_strong_bot"
+seed: 3
 
 # ---------------------------------------------------------------
 # Environment
@@ -64,6 +64,7 @@ buffer_type: "er"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay"
+use_fixed_opponent: True
 total_timesteps: 4_000_000
 learning_starts: 10_000
 batch_size: 256
@@ -73,15 +74,15 @@ pool_max_size: 10
 pool_update_interval: 10_000
 pool_update_check_window: 100
 pool_update_eval_episodes: 20
-pool_update_win_rate_threshold: 0.60
-pool_strong_bot_prob: 0.8
+pool_update_win_rate_threshold: 0.70
+pool_strong_bot_prob: 0.7
 pool_snapshot_prob: 0.5
 pool_recency_bias: 2.0
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_v2/td3_job3"
+log_dir: "./logs_v3/td3_job3"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20

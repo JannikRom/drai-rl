@@ -23,33 +23,13 @@ import argparse
 
 from common.config import RLConfig
 from environments.environments import get_env_dims
-from agents.td3_agent import TD3Agent
-from agents.sac_agent import SACAgent
+from agents.create_agent import create_agent
+from agents.base_agent import BaseAgent
 from training.standard_trainer import StandardTrainer
 from training.selfplay_trainer import SelfPlayTrainer
 
-def create_agent(config: RLConfig):
-    """
-    Create agent based on config.
-    """
 
-    state_dim, action_dim, max_action = get_env_dims(config.env_name)
-    
-    agent_type = config.agent_type.lower() 
-    
-    if agent_type == 'td3':
-        return TD3Agent(state_dim, action_dim, max_action, config)
-    
-    elif agent_type == 'sac':
-         return SACAgent(state_dim, action_dim, max_action, config)
-    
-    else:
-        raise ValueError(
-            f"Unknown agent type: '{config.agent_type}'. "
-            f"Available: ['td3', 'sac']"
-        )
-
-def create_trainer(agent: TD3Agent | SACAgent, config: RLConfig) -> StandardTrainer | SelfPlayTrainer:
+def create_trainer(agent: BaseAgent, config: RLConfig) -> StandardTrainer | SelfPlayTrainer:
     """
     Create trainer based on config.
     """
@@ -110,6 +90,7 @@ def main():
         agent.load(args.checkpoint)
     
     trainer = create_trainer(agent, config)
+
     trainer.train()
     
     print(f"\n== Training complete — results in: {trainer.save_dir} ==")

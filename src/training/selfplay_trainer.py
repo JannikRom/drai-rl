@@ -15,6 +15,8 @@ from agents.base_agent import BaseAgent
 from common.config import RLConfig
 from training.standard_trainer import StandardTrainer
 from training.opponent_pool import OpponentPool
+from environments.environments import get_env_dims
+from training.opponent_pool import load_fixed_opponent
 
 class SelfPlayTrainer(StandardTrainer):
     """
@@ -47,10 +49,18 @@ class SelfPlayTrainer(StandardTrainer):
             recency_bias = pool_recency_bias
         )
         
+        state_dim, action_dim, max_action = get_env_dims(self.config.env_name)
         self.pool.set_basic_opponents(
-            strong_bot=hockey_env.BasicOpponent(weak=False), 
+            strong_bot=hockey_env.BasicOpponent(weak=False),
             weak_bot=hockey_env.BasicOpponent(weak=True)
         )
+
+        if self.config.use_fixed_opponent:
+            opp_type = 'sac' if self.config.agent_type.lower() == 'td3' else 'td3'
+            fixed_opp = load_fixed_opponent(opp_type, self.config, state_dim, action_dim, max_action)
+            self.pool.add_fixed_opponent(fixed_opp)
+
+
 
         print(f"OpponentPool initialized:       {self.pool}")
         print(f"Pool update interval:           {self.pool_update_interval} episodes")
