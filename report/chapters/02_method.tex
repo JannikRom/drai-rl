@@ -47,13 +47,27 @@ J(\alpha) = \mathbb{E}_{a_t \sim \pi_\phi} \left[ -\alpha \left( \log \pi_\phi(a
 where $\bar{\mathcal{H}}$ denotes the target entropy, typically set to $-\text{dim}(\mathcal{A})$ as recommended in \cite{haarnoja2018algorithms}. The parameter $\alpha$ is optimized using a gradient-based method.
 
 
-\subsection{Verbesserungen}
+\subsection{Improvements}
 
-Pink Noise
+\subsubsection*{Pink Noise}
+\subsubsection*{Replay Buffer}
+Since both implemented algorithms are off-policy, training relies on data stored in a replay buffer.  We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and reducing correlations between subsequent samples. Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer. During training, batches are sampled uniformly from the buffer.
+\todo[inline]{evtl. Quelle ergänzen}
+However, uniform sampling treats all transitions equally, although some experiences may be more informative for learning. To address this limitation, we additionally implement \ac{PER}.
 
-PER
+\paragraph{Prioritized Experience Replay}
+\ac{PER} assigns higher sampling probabilities to transitions with larger temporal-difference (TD) errors, under the assumption that such samples provide more informative learning signals \cite{Schaul2015PrioritizedER}. Instead of uniform sampling, each transition $i$ is associated with a priority value $p_i = |\delta_i| + \varepsilon$, where where $\delta_i$ denotes the TD error and $\varepsilon > 0$ ensures non-zero probability. Transitions are sampled according to
+\begin{equation}
+P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha},
+\end{equation}
+$\alpha$ determines the degree of prioritization, whereby $\alpha = 0$ would correspond to uniform sampling. Prioritized sampling introduces a bias, which is why importance sampling (IS) weights are used to correct the update:
+\begin{equation}
+w_i = \left( \frac{1}{N} \cdot \frac{1}{P(i)} \right)^\beta,
+\end{equation}
+where $N$ is the buffer size and $\beta$ controls the strength of bias correction \cite{Schaul2015PrioritizedER}.
+\todo[inline]{SumTree für O(log N), beta annealing}
+\subsubsection*{Reward Shaping}
+\subsubsection*{Self-Play}
 
-Reward Shapping
 
-Self-Play
 
