@@ -18,6 +18,9 @@ cd "$REPO"
 
 CONFIGS=(
   "$REPO/src/configs/td3/jobs/sac_job1.yaml"
+  "$REPO/src/configs/td3/jobs/td3_job2.yaml"
+  "$REPO/src/configs/td3/jobs/td3_job3.yaml"
+  "$REPO/src/configs/td3/jobs/td3_job4.yaml"
 )
 
 HOST_CONFIG="${CONFIGS[$SLURM_ARRAY_TASK_ID]}"
