@@ -1,5 +1,72 @@
 \section{Method}\label{sec:method}
 
+
+\newpage
+
+\subsection{Twin Delayed Deep Deterministic Policy Gradient (TD3)}
+\label{sec:td3}
+
+We implement Twin Delayed Deep Deterministic Policy Gradient (TD3)~\cite{fujimoto2018:TD3} for the hockey environment's continuous control tasks.
+TD3 is a model-free, off-policy actor--critic algorithm that extends DDPG~\cite{lillicrap2015:DDPG} by explicitly reducing overestimation bias and stabilizing policy updates, which is crucial in continuous action domains.
+
+TD3 follows the deterministic policy gradient framework~\cite{silver2014:DPG}.
+The actor represents a deterministic policy \(a=\pi_\phi(s)\) and is trained to maximize the expected discounted return
+\begin{equation}
+J(\phi) = \mathbb{E}\Big[ \sum_{t=0}^{\infty} \gamma^t r(s_t, \pi_\phi(s_t)) \Big].
+\end{equation}
+A critic \(Q_\theta(s,a)\) approximates the action-value function \(Q^\pi(s,a)\) and is trained from replay buffer samples using bootstrapped Bellman targets~\cite{lillicrap2015:DDPG}.
+The actor update is computed via the deterministic policy gradient
+\begin{equation}
+\nabla_\phi J(\phi) \approx \mathbb{E}_{s \sim \mathcal{D}}\!\left[ \nabla_a Q_{\theta}(s,a)\vert_{a=\pi_\phi(s)} \nabla_\phi \pi_\phi(s) \right].
+\end{equation}
+While this approach provides informative gradients in continuous control, DDPG-style methods can become unstable when the critic is inaccurate: overestimated Q-values directly induce overly optimistic policy updates and may lead to divergence~\cite{fujimoto2018:TD3}.
+
+TD3 addresses these issues with three interacting modifications~\cite{fujimoto2018:TD3}.
+First, \textbf{clipped double Q-learning} reduces overestimation by learning two independent critics \(Q_{\theta_1}\) and \(Q_{\theta_2}\) and using a conservative target based on the minimum of the two target critics,
+\begin{equation}
+y = r + \gamma(1-d) \min_{i=1,2} Q_{\theta_i'}(s', \tilde{a}),
+\end{equation}
+where \(d\) denotes episode termination and \(\theta_i'\) are target network parameters.
+Each critic is optimized by minimizing the squared Bellman error over a minibatch of size \(N\),
+\begin{equation}
+L_{Q_i} = \frac{1}{N} \sum_{j=1}^N \big( y_j - Q_{\theta_i}(s_j, a_j) \big)^2.
+\end{equation}
+
+Second, \textbf{target policy smoothing} regularizes the bootstrapping target to avoid exploiting narrow, erroneous peaks in the value estimate.
+Instead of directly evaluating the target action \(\pi_{\phi'}(s')\), TD3 perturbs it with clipped Gaussian noise:
+\begin{equation}
+\tilde{a} = \operatorname{clip}\left( \pi_{\phi'}(s') + \epsilon,\, a_{\min},\, a_{\max} \right),\quad
+\epsilon \sim \operatorname{clip}\left(\mathcal{N}(0,\sigma), -c, c\right).
+\end{equation}
+This encourages the critics to learn smoother Q-functions by enforcing similar values for nearby actions~\cite{fujimoto2018:TD3}.
+
+Third, \textbf{delayed policy updates} reduce variance in the policy gradient by updating the actor less frequently than the critics (typically every \(K=2\) critic updates).
+In addition, TD3 uses slowly-changing target networks for both actor and critics, updated via Polyak averaging:
+\begin{equation}
+\theta_i' \leftarrow \tau \theta_i + (1-\tau) \theta_i',\quad
+\phi' \leftarrow \tau \phi + (1-\tau) \phi'.
+\end{equation}
+This yields a more stable learning objective and empirically improves training robustness in continuous control~\cite{fujimoto2018:TD3}.
+
+Training is performed off-policy with a replay buffer \(\mathcal{D}\) storing transitions \((s_t,a_t,r_t,s_{t+1},d_t)\).
+At each environment step we add exploration noise to the executed action, \(a_t = \pi_\phi(s_t) + \eta_t\), and clip the result to the action bounds before interacting with the environment.
+For each gradient step, we sample minibatches from \(\mathcal{D}\), update both critics towards the target \(y\), and update the actor only every \(K\) steps using the current critic gradient.
+
+TD3 is well-suited for the hockey task because the environment combines short-horizon precision (interceptions and shots) with long-horizon positioning and defense.
+In such settings, optimistic value errors can quickly translate into unrealistic aggressive actions; TD3's conservative targets, smoothed bootstrapping, and delayed actor updates mitigate this failure mode and provide a strong baseline for continuous control~\cite{fujimoto2018:TD3}.
+
+
+\subsection{SAC}
+
+\subsection{Improvements}
+
+Pink Noise
+
+PER
+
+Reward Shapping
+
+Self-Play
 \subsection{TD-3}
 \newpage
 \subsection{Soft Actor-Critic}
