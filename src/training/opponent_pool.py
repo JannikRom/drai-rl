@@ -93,20 +93,19 @@ class OpponentPool:
         (1 - p_strong_bot_prob) * p_snapshot_prob: snapshot from rotating pool (recency-weighted)
         (1 - p_strong_bot_prob) * (1 - p_snapshot_prob): weak basic opponent
         """
-        if random.random() < self.p_strong_bot_prob:
-            return self._strong_bot
-
-        if random.random() < self.p_snapshot_prob:
-            if not self._rotated:
-                # Sample weak or fixed equally
-                return random.choice([self._weak_bot, self._fixed_opponent]) if self._fixed_opponent else self._weak_bot
-            n_rotated = len(self._rotated)
-            weights = np.linspace(1.0, self.recency_bias, n_rotated)
-            weights = weights / weights.sum()
-            return random.choices(self._rotated, weights=weights, k=1)[0]
-        else:
-            # Sample weak or fixed equally
-            return random.choice([self._weak_bot, self._fixed_opponent]) if self._fixed_opponent else self._weak_bot
+        if random.random() < self.p_strong_bot_prob: 
+            return self._strong_bot   
+        
+        if random.random() < self.p_snapshot_prob and self._rotated: 
+            n = len(self._rotated)   
+            weights = np.linspace(1.0, self.recency_bias, n) 
+            weights /= weights.sum()   
+            return random.choices(self._rotated, weights=weights, k=1)[0]   
+        
+        choices = [self._weak_bot]   
+        if self._fixed_opponent is not None: 
+            choices.append(self._fixed_opponent)   
+        return random.choice(choices)
         
     def members(self) -> list:
         members = [self._strong_bot, self._weak_bot]

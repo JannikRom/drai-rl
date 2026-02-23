@@ -6,10 +6,8 @@ Author: Jannik Rombach
 
 from __future__ import annotations
 
-import copy
 import numpy as np
 import hockey.hockey_env as hockey_env
-import torch
 
 from agents.base_agent import BaseAgent
 from common.config import RLConfig
@@ -35,6 +33,9 @@ class SelfPlayTrainer(StandardTrainer):
         self.pool_update_eval_episodes = config.get("pool_update_eval_episodes")
         self.pool_update_win_rate_threshold = config.get("pool_update_win_rate_threshold")
         
+        self._episodes_since_opponent_switch = 0
+        self._opponent_switch_interval = 0
+        
         self._episodes_since_last_pool_update = 0
 
         pool_max_size= config.get("pool_max_size")
@@ -59,8 +60,6 @@ class SelfPlayTrainer(StandardTrainer):
             opp_type = 'sac' if self.config.agent_type.lower() == 'td3' else 'td3'
             fixed_opp = load_fixed_opponent(opp_type, self.config, state_dim, action_dim, max_action)
             self.pool.add_fixed_opponent(fixed_opp)
-
-
 
         print(f"OpponentPool initialized:       {self.pool}")
         print(f"Pool update interval:           {self.pool_update_interval} episodes")
@@ -133,8 +132,12 @@ class SelfPlayTrainer(StandardTrainer):
                 self._maybe_update_pool(episode_num)
 
                 # Sample new opponent after potential pool update
-                opponent = self.pool.sample()
-                self.env.set_opponent(opponent)
+                self._episodes_since_opponent_switch += 1
+
+                if self._episodes_since_opponent_switch >= self._opponent_switch_interval: 
+                    opponent = self.pool.sample() 
+                    self.env.set_opponent(opponent) 
+                    self._episodes_since_opponent_switch = 0
 
                 if hasattr(self.agent, 'reset_exploration'):
                     self.agent.reset_exploration()
@@ -184,7 +187,7 @@ class SelfPlayTrainer(StandardTrainer):
                     wins += 1
                 total += 1
 
-        self.eval_env.set_opponent(hockey_env.BasicOpponent(weak=False))
+        self.eval_env.set_opponent(self.pool._strong_bot)
         return wins / total if total > 0 else 0.0
     
 

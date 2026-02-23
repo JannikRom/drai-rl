@@ -17,11 +17,9 @@ REPO=/home/stud342/drai-rl
 cd "$REPO"
 
 CONFIGS=(
-  "$REPO/src/configs/td3/jobs/td3_job1.yaml"
   "$REPO/src/configs/td3/jobs/td3_job2.yaml"
   "$REPO/src/configs/td3/jobs/td3_job3.yaml"
   "$REPO/src/configs/td3/jobs/td3_job4.yaml"
-  "$REPO/src/configs/td3/jobs/td3_job5.yaml"
 )
 
 HOST_CONFIG="${CONFIGS[$SLURM_ARRAY_TASK_ID]}"

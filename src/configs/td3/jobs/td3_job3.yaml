@@ -65,24 +65,24 @@ buffer_type: "er"
 # ---------------------------------------------------------------
 training_mode: "selfplay"
 use_fixed_opponent: True
-total_timesteps: 4_000_000
+total_timesteps: 8_000_000
 learning_starts: 10_000
 batch_size: 256
 
 # Self-Play Pool
-pool_max_size: 10
+pool_max_size: 5
 pool_update_interval: 10_000
 pool_update_check_window: 100
 pool_update_eval_episodes: 20
 pool_update_win_rate_threshold: 0.70
-pool_strong_bot_prob: 0.7
+pool_strong_bot_prob: 0.6
 pool_snapshot_prob: 0.5
 pool_recency_bias: 2.0
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_v3/td3_job3"
+log_dir: "./logs_v4/td3_job3"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20
@@ -93,7 +93,7 @@ eval_episodes: 20
 logging:
   loss_every_steps: 100
   per_beta_every_steps: 100
-  print_every_episodes: 1000
+  print_every_episodes: 1_000
   avg_window: 10
   log_losses: true
   log_per: false
