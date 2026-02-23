@@ -55,20 +55,6 @@ For each gradient step, we sample minibatches from \(\mathcal{D}\), update both 
 TD3 is well-suited for the hockey task because the environment combines short-horizon precision (interceptions and shots) with long-horizon positioning and defense.
 In such settings, optimistic value errors can quickly translate into unrealistic aggressive actions; TD3's conservative targets, smoothed bootstrapping, and delayed actor updates mitigate this failure mode and provide a strong baseline for continuous control~\cite{fujimoto2018:TD3}.
 
-
-\subsection{SAC}
-
-\subsection{Improvements}
-
-Pink Noise
-
-PER
-
-Reward Shapping
-
-Self-Play
-\subsection{TD-3}
-\newpage
 \subsection{Soft Actor-Critic}
 \ac{SAC} is an off-policy actor-critic algorithm designed for optimizing stochastic policies in continuous action spaces. Our implementation follows the framework introduced by \cite{haarnoja2018soft}, which augments the standard maximum reward objective with an entropy maximization term \cite{ziebart2010}. This approach encourages wider exploration and improves robustness by seeking a policy that maximizes the trade-off between expected return and entropy:
 \begin{equation}
@@ -117,6 +103,8 @@ where $\bar{\mathcal{H}}$ denotes the target entropy, typically set to $-\text{d
 \subsection{Improvements}
 
 \subsubsection*{Pink Noise}
+
+
 \subsubsection*{Replay Buffer}
 Since both implemented algorithms are off-policy, training relies on data stored in a replay buffer.  We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and reducing correlations between subsequent samples. Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer. During training, batches are sampled uniformly from the buffer.
 \todo[inline]{evtl. Quelle ergänzen}
@@ -133,8 +121,12 @@ w_i = \left( \frac{1}{N} \cdot \frac{1}{P(i)} \right)^\beta,
 \end{equation}
 where $N$ is the buffer size and $\beta$ controls the strength of bias correction \cite{Schaul2015PrioritizedER}.
 \todo[inline]{SumTree für O(log N), beta annealing}
+
 \subsubsection*{Reward Shaping}
+
 \subsubsection*{Self-Play}
+
+
 
 
 
