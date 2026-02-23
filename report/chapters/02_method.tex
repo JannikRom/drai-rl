@@ -117,7 +117,6 @@ critic has formed a reliable local picture of the value landscape.
 Together, these mechanisms provide the stable learning dynamic needed to acquire the varied
 behavioural repertoire required in the hockey environment.
 
-
 \subsection{Soft Actor-Critic}
 \label{sec:sac}
 
@@ -218,37 +217,32 @@ We implemented standard \ac{ER}, which improves data efficiency by reusing past 
 reducing correlations between subsequent samples.
 Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer; during training,
 batches are sampled uniformly from the buffer.
-\todo[inline]{evtl.\ Quelle ergänzen}
 However, uniform sampling treats all transitions equally, although some experiences may be more
 informative for learning.
 To address this limitation, we additionally implement \ac{PER}.
 
 
 \paragraph{Prioritized Experience Replay}
-\ac{PER} assigns higher sampling probabilities to transitions with larger temporal-difference (TD)
-errors, under the assumption that such samples provide more informative learning
-signals~\cite{Schaul2015PrioritizedER}.
-Instead of uniform sampling, each transition $i$ is associated with a priority value
-$p_i = |\delta_i| + \varepsilon$, where $\delta_i$ denotes the TD error and $\varepsilon > 0$
-ensures non-zero probability.
-Transitions are sampled according to
-\begin{equation}
-  P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha},
-\end{equation}
-where $\alpha$ determines the degree of prioritization ($\alpha = 0$ recovers uniform sampling).
-Prioritized sampling introduces a bias, corrected via importance-sampling (IS) weights:
-\begin{equation}
-  w_i = \left(\frac{1}{N} \cdot \frac{1}{P(i)}\right)^\beta,
-\end{equation}
-where $N$ is the buffer size and $\beta$ controls the strength of bias
-correction~\cite{Schaul2015PrioritizedER}.
-\todo[inline]{SumTree für O(log N), beta annealing}
+\ac{PER} assigns higher sampling probabilities to transitions with larger temporal-difference (TD) errors, under the assumption that such samples provide more informative learning signals~\cite{Schaul2015PrioritizedER}. Instead of uniform sampling, each transition $i$ is associated with a priority value $p_i = |\delta_i| + \varepsilon$, where $\delta_i$ denotes the TD error and $\varepsilon > 0$ ensures non-zero probability. Transitions are sampled according to 
+\begin{equation}   
+  P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha}, 
+\end{equation} where $\alpha$ determines the degree of prioritization ($\alpha = 0$ recovers uniform sampling). Prioritized sampling introduces a bias, corrected via importance-sampling (IS) weights: 
+\begin{equation}   
+  w_i = \left(\frac{1}{N} \cdot \frac{1}{P(i)}\right)^\beta, 
+\end{equation} where $N$ is the buffer size and $\beta$ controls the strength of bias correction~\cite{Schaul2015PrioritizedER}.
+To progressively compensate for the bias introduced by prioritized sampling, the importance-sampling exponent $\beta$ is annealed towards $1$ over the course of training, ensuring asymptotically unbiased updates. 
+In our implementation, the annealing schedule is controlled via a configurable parameter that specifies the fraction of total training steps over which $\beta$ is linearly increased to its final value of $1$, after which it remains constant. This ensures that updates become fully bias-corrected in the later stages of training.
+Efficient sampling and priority updates are implemented using a binary SumTree data structure, enabling both operations in $\mathcal{O}(\log N)$ time.
 
 
 \subsubsection*{Pink Noise}
 
 
 \subsubsection*{Reward Shaping}
+To enhance learning in the hockey environment, we extend the original reward formulation with additional shaping terms. The environment provides a sparse positive reward for winning as well as a reward related to the agent’s distance to the puck. Furthermore, the environment includes signals for puck contact and puck direction, which are not enabled by default.
 
+In early training stages, we observed that the agent often needed a significant amount of time to start interacting with the puck. To accelerate early learning and encourage active engagement, we introduce a time-penalty term that is applied when the puck remains stationary on the agent’s side of the field. This discourages too passive behavior and promotes faster initiation of play.
+To encourage more organized defensive behavior and prevent the agent from leaving its own goal unprotected, we also include a shaping reward based on the distance to the agent’s goal
 
+All shaping components are configurable via the YAML configuration file and can be individually weighted or disabled. This design allows systematic experimentation with different reward combinations.
 \subsubsection*{Self-Play}
