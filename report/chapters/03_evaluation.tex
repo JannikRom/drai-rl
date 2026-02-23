@@ -1,6 +1,10 @@
 \section{Evaluation}\label{sec:eval}
-
+In this section, we evaluate the performance of the implemented algorithms and the proposed improvements across multiple experimental settings. The evaluation is structured in three stages.
+First, we assess the general performance and stability of the algorithms in three commonly used benchmark environments.
+Second, we analyze training behavior in the hockey environment, with particular focus on the impact of the introduced modifications, including self-play and other algorithmic adjustments. 
+Finally, we evaluate the relative playing strength of the resulting agents in a competitive tournament setting. Match outcomes are aggregated and modeled using the Placket-Luce rating system in order to obtain a grounded ranking of agents. This allows a fundamental comparison of different training configurations that goes beyond the performance metrics of a single run.
 \subsection{Simple Environments}
+We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah.  For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
 
 
 \subsection{Hockey Environment}
