@@ -34,7 +34,7 @@ class SelfPlayTrainer(StandardTrainer):
         self.pool_update_win_rate_threshold = config.get("pool_update_win_rate_threshold")
         
         self._episodes_since_opponent_switch = 0
-        self._opponent_switch_interval = 0
+        self._opponent_switch_interval = 5
         
         self._episodes_since_last_pool_update = 0
 

@@ -1,132 +1,254 @@
 \section{Method}\label{sec:method}
 
+The hockey environment exposes a low-dimensional but fully continuous action space, 
+which makes discrete-action methods such as DQN~\cite{mnih2015:DQN}
+inapplicable and on-policy methods such as PPO~\cite{SchulmanEtAl2017:PPO} less sample-efficient
+due to their inability to reuse past experience.
+We therefore focus on two off-policy, continuous-control baselines that represent complementary
+design philosophies: TD3~\cite{fujimoto2018:TD3}, which optimizes a deterministic policy with
+explicit bias-correction mechanisms, and SAC~\cite{haarnoja2018soft}, which optimizes a
+stochastic policy through entropy maximization.
+Both are well-established benchmarks in continuous control, offer strong sample efficiency via
+experience replay, and their contrasting approaches to exploration and value estimation make a
+direct empirical comparison meaningful on the same task.
+
+Both algorithms share a common backbone: a replay buffer $\mathcal{D}$ stores transitions
+$(s_t, a_t, r_t, s_{t+1}, d_t)$, and gradient updates are performed on minibatches sampled from
+$\mathcal{D}$.
+An actor $\pi$ selects actions while one or more critics $Q_\theta$ estimate action-values; both
+components maintain slowly updated target networks updated via Polyak averaging,
+\begin{equation}
+  \theta' \leftarrow \tau\,\theta + (1-\tau)\,\theta', \qquad
+  \phi'   \leftarrow \tau\,\phi  + (1-\tau)\,\phi'.
+  \label{eq:polyak}
+\end{equation}
+TD3 (Section~\ref{sec:td3}) uses a \emph{deterministic} actor with three targeted stabilization
+mechanisms; SAC (Section~\ref{sec:sac}) uses a \emph{stochastic} actor augmented with entropy
+regularization.
+Both are further extended with the improvements described in Section~\ref{sec:improvements}.
+
 
 \newpage
+
 
 \subsection{Twin Delayed Deep Deterministic Policy Gradient (TD3)}
 \label{sec:td3}
 
-We implement Twin Delayed Deep Deterministic Policy Gradient (TD3)~\cite{fujimoto2018:TD3} for the hockey environment's continuous control tasks.
-TD3 is a model-free, off-policy actor--critic algorithm that extends DDPG~\cite{lillicrap2015:DDPG} by explicitly reducing overestimation bias and stabilizing policy updates, which is crucial in continuous action domains.
-
-TD3 follows the deterministic policy gradient framework~\cite{silver2014:DPG}.
-The actor represents a deterministic policy \(a=\pi_\phi(s)\) and is trained to maximize the expected discounted return
+TD3~\cite{fujimoto2018:TD3} is a model-free, off-policy actor--critic algorithm that extends
+DDPG~\cite{lillicrap2015:DDPG} by explicitly addressing overestimation bias and policy update
+instability in continuous action domains.
+The actor encodes a \emph{deterministic} policy $a = \pi_\phi(s)$ and is trained to maximize the
+expected discounted return
 \begin{equation}
-J(\phi) = \mathbb{E}\Big[ \sum_{t=0}^{\infty} \gamma^t r(s_t, \pi_\phi(s_t)) \Big].
+  J(\phi) = \mathbb{E}\!\left[\sum_{t=0}^{\infty} \gamma^t\, r(s_t, \pi_\phi(s_t))\right].
 \end{equation}
-A critic \(Q_\theta(s,a)\) approximates the action-value function \(Q^\pi(s,a)\) and is trained from replay buffer samples using bootstrapped Bellman targets~\cite{lillicrap2015:DDPG}.
-The actor update is computed via the deterministic policy gradient
+Following the deterministic policy gradient theorem~\cite{silver2014:DPG}, the gradient of this
+objective with respect to the actor parameters is
 \begin{equation}
-\nabla_\phi J(\phi) \approx \mathbb{E}_{s \sim \mathcal{D}}\!\left[ \nabla_a Q_{\theta}(s,a)\vert_{a=\pi_\phi(s)} \nabla_\phi \pi_\phi(s) \right].
+  \nabla_\phi J(\phi)
+    \approx \mathbb{E}_{s \sim \mathcal{D}}\!\left[
+      \nabla_a Q_{\theta}(s,a)\big|_{a=\pi_\phi(s)}\,
+      \nabla_\phi \pi_\phi(s)
+    \right].
 \end{equation}
-While this approach provides informative gradients in continuous control, DDPG-style methods can become unstable when the critic is inaccurate: overestimated Q-values directly induce overly optimistic policy updates and may lead to divergence~\cite{fujimoto2018:TD3}.
+This allows the actor to be updated by simply back-propagating the critic gradient through the
+deterministic action.
+While this yields highly informative gradient signal in continuous domains, DDPG-style methods
+are acutely sensitive to critic inaccuracies: whenever the critic overestimates the value of
+certain actions, the actor exploits these errors and converges to suboptimal or unstable
+behaviour~\cite{fujimoto2018:TD3}.
+TD3 addresses this with three interacting mechanisms.
 
-TD3 addresses these issues with three interacting modifications~\cite{fujimoto2018:TD3}.
-First, \textbf{clipped double Q-learning} reduces overestimation by learning two independent critics \(Q_{\theta_1}\) and \(Q_{\theta_2}\) and using a conservative target based on the minimum of the two target critics,
+\textbf{Clipped double Q-learning.}
+To counteract overestimation bias, TD3 maintains two independent critics $Q_{\theta_1}$ and
+$Q_{\theta_2}$ that are trained in parallel but receive no shared parameters.
+When computing Bellman targets, the minimum of the two target critics is used,
 \begin{equation}
-y = r + \gamma(1-d) \min_{i=1,2} Q_{\theta_i'}(s', \tilde{a}),
+  y = r + \gamma(1-d)\min_{i=1,2} Q_{\theta_i'}(s', \tilde{a}),
+  \label{eq:td3target}
 \end{equation}
-where \(d\) denotes episode termination and \(\theta_i'\) are target network parameters.
-Each critic is optimized by minimizing the squared Bellman error over a minibatch of size \(N\),
+where $d$ indicates episode termination and $\theta_i'$ are the target network parameters updated
+via~\eqref{eq:polyak}.
+Taking the minimum introduces a conservative bias that counteracts the systematic overestimation
+inherent in maximizing over noisy function approximators.
+Both critics are then independently updated by minimizing the mean squared Bellman error
+$(y - Q_{\theta_i}(s, a))^2$ over minibatches from $\mathcal{D}$.
+Because the target $y$ is shared but gradients flow independently, the two critics diverge
+slightly, which is precisely what prevents correlated overestimation.
+
+\textbf{Target policy smoothing.}
+A deterministic policy is particularly vulnerable to narrow, erroneous peaks in the learned value
+function: if the critic assigns a spuriously high value to a small region of action space, the
+actor will immediately collapse onto that region.
+TD3 regularizes against this by perturbing the target action with clipped Gaussian noise before
+evaluating the Bellman target,
 \begin{equation}
-L_{Q_i} = \frac{1}{N} \sum_{j=1}^N \big( y_j - Q_{\theta_i}(s_j, a_j) \big)^2.
+  \tilde{a} = \operatorname{clip}\!\left(\pi_{\phi'}(s') + \epsilon,\;a_{\min},\;a_{\max}\right),
+  \quad \epsilon \sim \operatorname{clip}\!\left(\mathcal{N}(0,\sigma),\;-c,\;c\right).
 \end{equation}
+By forcing the backup to average over a small neighbourhood of the target action, the critics are
+encouraged to learn a smoother value landscape, making individual erroneous peaks less
+exploitable by the actor~\cite{fujimoto2018:TD3}.
+The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters that control the
+effective radius of this smoothing.
 
-Second, \textbf{target policy smoothing} regularizes the bootstrapping target to avoid exploiting narrow, erroneous peaks in the value estimate.
-Instead of directly evaluating the target action \(\pi_{\phi'}(s')\), TD3 perturbs it with clipped Gaussian noise:
-\begin{equation}
-\tilde{a} = \operatorname{clip}\left( \pi_{\phi'}(s') + \epsilon,\, a_{\min},\, a_{\max} \right),\quad
-\epsilon \sim \operatorname{clip}\left(\mathcal{N}(0,\sigma), -c, c\right).
-\end{equation}
-This encourages the critics to learn smoother Q-functions by enforcing similar values for nearby actions~\cite{fujimoto2018:TD3}.
+\textbf{Delayed policy updates.}
+Even with conservative targets and smoothed backups, updating the actor at every critic step
+introduces high variance into the policy gradient: the critic has not yet fully integrated the
+latest target information before its gradient is used to move the policy.
+TD3 therefore updates the actor only once every $K = 2$ critic steps.
+This delay ensures the critics are in a more stable and accurate state when the actor gradient
+is computed, substantially reducing the variance of policy updates and preventing the actor from
+over-adapting to transient critic errors~\cite{fujimoto2018:TD3}.
+In addition, the target networks for both actor and critics are updated via the shared Polyak
+rule~\eqref{eq:polyak}, ensuring the learning targets change slowly and the training signal
+remains consistent across consecutive gradient steps.
 
-Third, \textbf{delayed policy updates} reduce variance in the policy gradient by updating the actor less frequently than the critics (typically every \(K=2\) critic updates).
-In addition, TD3 uses slowly-changing target networks for both actor and critics, updated via Polyak averaging:
-\begin{equation}
-\theta_i' \leftarrow \tau \theta_i + (1-\tau) \theta_i',\quad
-\phi' \leftarrow \tau \phi + (1-\tau) \phi'.
-\end{equation}
-This yields a more stable learning objective and empirically improves training robustness in continuous control~\cite{fujimoto2018:TD3}.
+TD3 is particularly well-suited for the hockey task.
+The environment demands a combination of short-horizon precision---intercepting a fast-moving
+puck, executing a well-timed shot---and long-horizon strategic positioning and defense.
+This mixture is challenging for actor-critic methods because a single erroneous value estimate in
+a critical state can cascade into a series of aggressive, high-variance actions that destabilize
+training.
+TD3's conservative minimum targets directly bound the magnitude of such errors, target policy
+smoothing prevents the actor from locking onto narrow value peaks that may correspond to
+unrealistic shooting strategies, and delayed updates ensure the policy only improves once the
+critic has formed a reliable local picture of the value landscape.
+Together, these mechanisms provide the stable learning dynamic needed to acquire the varied
+behavioural repertoire required in the hockey environment.
 
-Training is performed off-policy with a replay buffer \(\mathcal{D}\) storing transitions \((s_t,a_t,r_t,s_{t+1},d_t)\).
-At each environment step we add exploration noise to the executed action, \(a_t = \pi_\phi(s_t) + \eta_t\), and clip the result to the action bounds before interacting with the environment.
-For each gradient step, we sample minibatches from \(\mathcal{D}\), update both critics towards the target \(y\), and update the actor only every \(K\) steps using the current critic gradient.
-
-TD3 is well-suited for the hockey task because the environment combines short-horizon precision (interceptions and shots) with long-horizon positioning and defense.
-In such settings, optimistic value errors can quickly translate into unrealistic aggressive actions; TD3's conservative targets, smoothed bootstrapping, and delayed actor updates mitigate this failure mode and provide a strong baseline for continuous control~\cite{fujimoto2018:TD3}.
 
 \subsection{Soft Actor-Critic}
-\ac{SAC} is an off-policy actor-critic algorithm designed for optimizing stochastic policies in continuous action spaces. Our implementation follows the framework introduced by \cite{haarnoja2018soft}, which augments the standard maximum reward objective with an entropy maximization term \cite{ziebart2010}. This approach encourages wider exploration and improves robustness by seeking a policy that maximizes the trade-off between expected return and entropy:
+\label{sec:sac}
+
+\ac{SAC} is an off-policy actor-critic algorithm designed for optimizing stochastic policies in
+continuous action spaces.
+Our implementation follows the framework introduced by~\cite{haarnoja2018soft}, which augments the
+standard maximum reward objective with an entropy maximization term~\cite{ziebart2010}.
+This approach encourages wider exploration and improves robustness by seeking a policy that
+maximizes the trade-off between expected return and entropy:
 \begin{equation}
-J(\pi) = \sum_{t=0}^{T} \mathbb{E}_{(\mathbf{s}_t, \mathbf{a}_t) \sim \rho_\pi} \left[ r(\mathbf{s}_t, \mathbf{a}_t) + \alpha \mathcal{H}(\pi(\cdot | \mathbf{s}_t)) \right]
+  J(\pi) = \sum_{t=0}^{T}
+    \mathbb{E}_{(\mathbf{s}_t,\mathbf{a}_t)\sim\rho_\pi}\!\left[
+      r(\mathbf{s}_t,\mathbf{a}_t) + \alpha\,\mathcal{H}\!\left(\pi(\cdot|\mathbf{s}_t)\right)
+    \right]
 \end{equation}
-where $\rho_\pi$ denotes the state-action distribution induced by policy $\pi$ and $\mathcal{H}$ represents the entropy of the policy at state $\mathbf{s}_t$.
+where $\rho_\pi$ denotes the state-action distribution induced by policy $\pi$ and $\mathcal{H}$
+represents the entropy of the policy at state $\mathbf{s}_t$.
 
-The \ac{SAC} algorithm consists of an actor, critic, and an entropy regularization term governed by a temperature parameter $\alpha$.
-The actor is parameterized by a neural network that defines a Gaussian distribution over the continuous action space by estimating the mean $\mu_\theta(s)$ and standard deviation $\sigma_\theta(s)$ in its output layer. 
+The \ac{SAC} algorithm consists of an actor, critic, and an entropy regularization term governed
+by a temperature parameter $\alpha$.
+The actor is parameterized by a neural network that defines a Gaussian distribution over the
+continuous action space by estimating the mean $\mu_\theta(s)$ and standard deviation
+$\sigma_\theta(s)$ in its output layer.
 
-To ensure differentiability of the sampling process with respect to the policy parameters, the reparameterization trick is applied \cite{haarnoja2018soft, kingma2014auto} . Instead of sampling actions directly from the Gaussian distribution, actions are expressed as
-$a = \mu_\theta(s) + \sigma_\theta(s) \odot \epsilon$ where $\epsilon \sim \mathcal{N}(0, I)$ is an standard normal random variable.
+To ensure differentiability of the sampling process with respect to the policy parameters, the
+reparameterization trick is applied~\cite{haarnoja2018soft, kingma2014auto}.
+Instead of sampling actions directly from the Gaussian distribution, actions are expressed as
+$a = \mu_\theta(s) + \sigma_\theta(s) \odot \epsilon$ where $\epsilon \sim \mathcal{N}(0, I)$ is
+a standard normal random variable.
 
-The sampled actions are passed through a $\tanh$ function and scaled to match the action bounds of the environment. To correctly account for this squashing transformation in the entropy term, the log-probability is adjusted using the determinant of the Jacobian of the $\tanh$ transformation.
-The actor is trained on the maximum entropy objective \cite{haarnoja2018soft}:
+The sampled actions are passed through a $\tanh$ function and scaled to match the action bounds
+of the environment.
+To correctly account for this squashing transformation in the entropy term, the log-probability
+is adjusted using the determinant of the Jacobian of the $\tanh$ transformation.
+The actor is trained on the maximum entropy objective~\cite{haarnoja2018soft}:
 \begin{equation}
-J(\pi_\phi) = \mathbb{E}_{(\mathbf{s}_t \sim \mathcal{D})}\left[ \mathbb{E}_{(\mathbf{a}_t) \sim \pi_\phi} \left[ \alpha \log \pi_\phi(a_t|s_t) - Q_\theta(s_t, a_t) \right]\right]
+  J(\pi_\phi) =
+    \mathbb{E}_{(\mathbf{s}_t \sim \mathcal{D})}\!\left[
+      \mathbb{E}_{(\mathbf{a}_t) \sim \pi_\phi}\!\left[
+        \alpha \log \pi_\phi(a_t|s_t) - Q_\theta(s_t, a_t)
+      \right]
+    \right]
 \end{equation}
-where for each state sampled from the replay buffer $\mathcal{D}$, an action is sampled from the actor. The critic estimates the value for each state-action pair.
+where for each state sampled from the replay buffer $\mathcal{D}$, an action is sampled from the
+actor and the critic estimates the value for each state-action pair.
 
-As presented in the follow-up work \cite{haarnoja2018algorithms}, we employ two Q-networks for the critic instead of a single Q-network and a value network as originally proposed. The soft value function can be implicitly derived from the soft Q-function by combining the Q-values with the policy entropy term.
+As presented in the follow-up work~\cite{haarnoja2018algorithms}, we employ two Q-networks for
+the critic instead of a single Q-network and a value network as originally proposed.
+The soft value function can be implicitly derived from the soft Q-function by combining the
+Q-values with the policy entropy term.
 
-During training, two independent Q-networks estimate the value of a state-action pair. To mitigate overestimation bias, soft policy evaluation is performed using the minimum of the two Q-values, which provides a more conservative value estimate \cite{Fujimoto2018Addressing}.
+During training, two independent Q-networks estimate the value of a state-action pair.
+To mitigate overestimation bias, soft policy evaluation is performed using the minimum of the two
+Q-values, which provides a more conservative value estimate~\cite{Fujimoto2018Addressing}.
 The critic is trained using a mean squared Bellman error loss:
-
-\begin{equation} 
-  J_Q(\theta_i) = \mathbb{E}_{\mathcal D} \left[ (Q_{\theta_i}(s_t,a_t) - y_t)^2 \right]
+\begin{equation}
+  J_Q(\theta_i) = \mathbb{E}_{\mathcal{D}}\!\left[
+    \left(Q_{\theta_i}(s_t,a_t) - y_t\right)^2
+  \right]
 \end{equation}
-
 with target value
-
 \begin{equation}
-  y_t = r_t + \gamma \left( \min_{j=1,2} Q_{\bar{\theta}_j}(s_{t+1},a_{t+1}) - \alpha \log \pi_\phi(a_{t+1}|s_{t+1}) \right)
+  y_t = r_t + \gamma\!\left(
+    \min_{j=1,2} Q_{\bar{\theta}_j}(s_{t+1},a_{t+1})
+    - \alpha \log \pi_\phi(a_{t+1}|s_{t+1})
+  \right).
 \end{equation}
+The target networks $\bar{\theta}_j$ are updated using soft updates with factor $\tau$, which
+improves training stability by preventing rapid divergence between online and target critics.
 
-The target networks $\bar{\theta}_j$ are updated using soft updates with a factor $\tau$, which improves training stability by preventing rapid divergence between the online and target critics.
-
-Furthermore, automatic parameter tuning is implemented, which was also introduced in the follow-up paper \cite{haarnoja2018algorithms}. The temperature parameter $\alpha$ is optimized to match a target policy entropy, allowing the agent to automatically balance exploration and exploitation. The temperature is updated by minimizing
-
+Furthermore, automatic parameter tuning is implemented as introduced in the follow-up
+paper~\cite{haarnoja2018algorithms}.
+The temperature parameter $\alpha$ is optimized to match a target policy entropy, allowing the
+agent to automatically balance exploration and exploitation.
+The temperature is updated by minimizing
 \begin{equation}
-J(\alpha) = \mathbb{E}_{a_t \sim \pi_\phi} \left[ -\alpha \left( \log \pi_\phi(a_t|s_t) + \bar{\mathcal{H}} \right) \right],
+  J(\alpha) = \mathbb{E}_{a_t \sim \pi_\phi}\!\left[
+    -\alpha\left(\log \pi_\phi(a_t|s_t) + \bar{\mathcal{H}}\right)
+  \right],
 \end{equation}
-where $\bar{\mathcal{H}}$ denotes the target entropy, typically set to $-\text{dim}(\mathcal{A})$ as recommended in \cite{haarnoja2018algorithms}. The parameter $\alpha$ is optimized using a gradient-based method.
+where $\bar{\mathcal{H}}$ denotes the target entropy, typically set to
+$-\operatorname{dim}(\mathcal{A})$ as recommended in~\cite{haarnoja2018algorithms}.
+The parameter $\alpha$ is optimized using a gradient-based method.
 
 
 \subsection{Improvements}
+\label{sec:improvements}
+
+We implemented a framework based on YAML configuration files to manage and persist training runs,
+enabling reproducible experiments and systematic tracking of hyperparameter changes.
+All modifications described below are applied on top of both the TD3 and SAC base implementations.
+
+
+\subsubsection*{Replay Buffer}
+Since both implemented algorithms are off-policy, training relies on data stored in a replay
+buffer.
+We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and
+reducing correlations between subsequent samples.
+Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer; during training,
+batches are sampled uniformly from the buffer.
+\todo[inline]{evtl.\ Quelle ergänzen}
+However, uniform sampling treats all transitions equally, although some experiences may be more
+informative for learning.
+To address this limitation, we additionally implement \ac{PER}.
+
+
+\paragraph{Prioritized Experience Replay}
+\ac{PER} assigns higher sampling probabilities to transitions with larger temporal-difference (TD)
+errors, under the assumption that such samples provide more informative learning
+signals~\cite{Schaul2015PrioritizedER}.
+Instead of uniform sampling, each transition $i$ is associated with a priority value
+$p_i = |\delta_i| + \varepsilon$, where $\delta_i$ denotes the TD error and $\varepsilon > 0$
+ensures non-zero probability.
+Transitions are sampled according to
+\begin{equation}
+  P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha},
+\end{equation}
+where $\alpha$ determines the degree of prioritization ($\alpha = 0$ recovers uniform sampling).
+Prioritized sampling introduces a bias, corrected via importance-sampling (IS) weights:
+\begin{equation}
+  w_i = \left(\frac{1}{N} \cdot \frac{1}{P(i)}\right)^\beta,
+\end{equation}
+where $N$ is the buffer size and $\beta$ controls the strength of bias
+correction~\cite{Schaul2015PrioritizedER}.
+\todo[inline]{SumTree für O(log N), beta annealing}
+
 
 \subsubsection*{Pink Noise}
 
 
-\subsubsection*{Replay Buffer}
-Since both implemented algorithms are off-policy, training relies on data stored in a replay buffer.  We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and reducing correlations between subsequent samples. Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer. During training, batches are sampled uniformly from the buffer.
-\todo[inline]{evtl. Quelle ergänzen}
-However, uniform sampling treats all transitions equally, although some experiences may be more informative for learning. To address this limitation, we additionally implement \ac{PER}.
-
-\paragraph{Prioritized Experience Replay}
-\ac{PER} assigns higher sampling probabilities to transitions with larger temporal-difference (TD) errors, under the assumption that such samples provide more informative learning signals \cite{Schaul2015PrioritizedER}. Instead of uniform sampling, each transition $i$ is associated with a priority value $p_i = |\delta_i| + \varepsilon$, where where $\delta_i$ denotes the TD error and $\varepsilon > 0$ ensures non-zero probability. Transitions are sampled according to
-\begin{equation}
-P(i) = \frac{p_i^\alpha}{\sum_k p_k^\alpha},
-\end{equation}
-$\alpha$ determines the degree of prioritization, whereby $\alpha = 0$ would correspond to uniform sampling. Prioritized sampling introduces a bias, which is why importance sampling (IS) weights are used to correct the update:
-\begin{equation}
-w_i = \left( \frac{1}{N} \cdot \frac{1}{P(i)} \right)^\beta,
-\end{equation}
-where $N$ is the buffer size and $\beta$ controls the strength of bias correction \cite{Schaul2015PrioritizedER}.
-\todo[inline]{SumTree für O(log N), beta annealing}
-
 \subsubsection*{Reward Shaping}
 
+
 \subsubsection*{Self-Play}
-
-
-
-
-

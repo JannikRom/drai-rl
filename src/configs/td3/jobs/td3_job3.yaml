@@ -74,7 +74,7 @@ pool_max_size: 5
 pool_update_interval: 10_000
 pool_update_check_window: 100
 pool_update_eval_episodes: 20
-pool_update_win_rate_threshold: 0.70
+pool_update_win_rate_threshold: 0.65
 pool_strong_bot_prob: 0.6
 pool_snapshot_prob: 0.5
 pool_recency_bias: 2.0
