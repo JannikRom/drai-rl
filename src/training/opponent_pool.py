@@ -19,8 +19,8 @@ import os
 
 THIS_DIR = os.path.dirname(__file__)
 
-SAC_CHECKPOINT = os.path.join(THIS_DIR, "strong_sac.pth")
-SAC_CONFIG = os.path.join(THIS_DIR, "strong_sac.yaml")
+SAC_CHECKPOINT = os.path.join(THIS_DIR, "strong_sac_42.pth")
+SAC_CONFIG = os.path.join(THIS_DIR, "strong_sac_42.yaml")
 TD3_CHECKPOINT = os.path.join(THIS_DIR, "strong_td3.pth")
 TD3_CONFIG = os.path.join(THIS_DIR, "strong_td3.yaml")
 
