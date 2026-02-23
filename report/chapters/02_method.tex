@@ -1,49 +1,33 @@
 \section{Method}\label{sec:method}
 
-The hockey environment exposes a low-dimensional but fully continuous action space, 
-which makes discrete-action methods such as DQN~\cite{mnih2015:DQN}
-inapplicable and on-policy methods such as PPO~\cite{SchulmanEtAl2017:PPO} less sample-efficient
-due to their inability to reuse past experience.
-We therefore focus on two off-policy, continuous-control baselines that represent complementary
-design philosophies: TD3~\cite{fujimoto2018:TD3}, which optimizes a deterministic policy with
-explicit bias-correction mechanisms, and SAC~\cite{haarnoja2018soft}, which optimizes a
-stochastic policy through entropy maximization.
-Both are well-established benchmarks in continuous control, offer strong sample efficiency via
-experience replay, and their contrasting approaches to exploration and value estimation make a
-direct empirical comparison meaningful on the same task.
-
-Both algorithms share a common backbone: a replay buffer $\mathcal{D}$ stores transitions
-$(s_t, a_t, r_t, s_{t+1}, d_t)$, and gradient updates are performed on minibatches sampled from
-$\mathcal{D}$.
-An actor $\pi$ selects actions while one or more critics $Q_\theta$ estimate action-values; both
-components maintain slowly updated target networks updated via Polyak averaging,
+The hockey environment's fully continuous action space makes discrete-action methods such as
+DQN~\cite{mnih2015:DQN} inapplicable, and on-policy algorithms such as
+PPO~\cite{SchulmanEtAl2017:PPO} less attractive due to poor sample efficiency.
+We therefore adopt two off-policy, continuous-control algorithms that share a common backbone
+yet represent complementary design philosophies: TD3~\cite{fujimoto2018:TD3} optimizes a
+deterministic policy with explicit bias-correction mechanisms, while SAC~\cite{haarnoja2018soft}
+optimizes a stochastic policy through entropy maximization.
+Both maintain a replay buffer $\mathcal{D}$ of transitions $(s_t, a_t, r_t, s_{t+1}, d_t)$,
+train an actor $\pi$ and one or more critics $Q_\theta$ on minibatches from $\mathcal{D}$, and
+stabilize learning via slowly updated target networks through Polyak averaging,
 \begin{equation}
   \theta' \leftarrow \tau\,\theta + (1-\tau)\,\theta', \qquad
-  \phi'   \leftarrow \tau\,\phi  + (1-\tau)\,\phi'.
+  \phi'   \leftarrow \tau\,\phi  + (1-\tau)\,\phi',
   \label{eq:polyak}
 \end{equation}
-TD3 (Section~\ref{sec:td3}) uses a \emph{deterministic} actor with three targeted stabilization
-mechanisms; SAC (Section~\ref{sec:sac}) uses a \emph{stochastic} actor augmented with entropy
-regularization.
-Both are further extended with the improvements described in Section~\ref{sec:improvements}.
-
-
-\newpage
+where $\tau \ll 1$ ensures the target parameters $\theta'$ and $\phi'$ track their online
+counterparts $\theta$ and $\phi$ slowly, providing a stable and consistent learning target
+throughout training.
+The individual algorithms are described in Sections~\ref{sec:td3} and~\ref{sec:sac},
+further improvements to both are presented in Section~\ref{sec:improvements}.
 
 
 \subsection{Twin Delayed Deep Deterministic Policy Gradient (TD3)}
 \label{sec:td3}
 
-TD3~\cite{fujimoto2018:TD3} is a model-free, off-policy actor--critic algorithm that extends
-DDPG~\cite{lillicrap2015:DDPG} by explicitly addressing overestimation bias and policy update
-instability in continuous action domains.
-The actor encodes a \emph{deterministic} policy $a = \pi_\phi(s)$ and is trained to maximize the
-expected discounted return
-\begin{equation}
-  J(\phi) = \mathbb{E}\!\left[\sum_{t=0}^{\infty} \gamma^t\, r(s_t, \pi_\phi(s_t))\right].
-\end{equation}
-Following the deterministic policy gradient theorem~\cite{silver2014:DPG}, the gradient of this
-objective with respect to the actor parameters is
+TD3~\cite{fujimoto2018:TD3} extends DDPG~\cite{lillicrap2015:DDPG} by adressing two fundamental failure modes of determenistic actor-critic methods:
+overestimation bias in the critic and instability in polciy updates.
+The actor encodes a \emph{deterministic} policy $a = \pi_\phi(s)$ and is trained to maximize expected discounted return via the determenistic policy gradient theorem~\cite{silver2014:DPG}:
 \begin{equation}
   \nabla_\phi J(\phi)
     \approx \mathbb{E}_{s \sim \mathcal{D}}\!\left[
@@ -51,71 +35,58 @@ objective with respect to the actor parameters is
       \nabla_\phi \pi_\phi(s)
     \right].
 \end{equation}
-This allows the actor to be updated by simply back-propagating the critic gradient through the
-deterministic action.
-While this yields highly informative gradient signal in continuous domains, DDPG-style methods
-are acutely sensitive to critic inaccuracies: whenever the critic overestimates the value of
-certain actions, the actor exploits these errors and converges to suboptimal or unstable
-behaviour~\cite{fujimoto2018:TD3}.
-TD3 addresses this with three interacting mechanisms.
 
-\textbf{Clipped double Q-learning.}
-To counteract overestimation bias, TD3 maintains two independent critics $Q_{\theta_1}$ and
-$Q_{\theta_2}$ that are trained in parallel but receive no shared parameters.
-When computing Bellman targets, the minimum of the two target critics is used,
+% Improve, i dont like the DDPG-style (not scientific), also "this yields highly informative gradient signal..." to vague, not really scientif. total rewrite
+While this yields highly informative gradient signal in continuous domains, 
+DDPG-style methods are acutely sensitive to critic inaccuracies: whenever the critic overestimates the value of certain actions, 
+the actor exploits these errors and converges to suboptimal or unstable behaviour~\cite{fujimoto2018:TD3}. 
+
+TD3 adresses this with three interacting mechanisms.
+
+\vspace{4pt}
+
+\textbf{Clipped double Q-learning}
+
+Two independent critics $Q_{\theta_1}$ and $Q_{\theta_2}$ are trained in parallel but share no parameters.
+When computing Bellman targets, the minimum of the two target critics is used:
 \begin{equation}
-  y = r + \gamma(1-d)\min_{i=1,2} Q_{\theta_i'}(s', \tilde{a}),
+  y = r + \gamma(1-d)\min_{i=1,2} Q_{\theta_i'}(s', \tilde{a})
   \label{eq:td3target}
 \end{equation}
-where $d$ indicates episode termination and $\theta_i'$ are the target network parameters updated
-via~\eqref{eq:polyak}.
-Taking the minimum introduces a conservative bias that counteracts the systematic overestimation
-inherent in maximizing over noisy function approximators.
-Both critics are then independently updated by minimizing the mean squared Bellman error
-$(y - Q_{\theta_i}(s, a))^2$ over minibatches from $\mathcal{D}$.
-Because the target $y$ is shared but gradients flow independently, the two critics diverge
-slightly, which is precisely what prevents correlated overestimation.
+where $d$ indicates episode termination and $\theta_i$ are the target network parameters updated via~\eqref{eq:polyak}.
+Taking the minimum introduces a conservative bias that counteracts the systematic overastimation inherent in maximizing over noisy function approximators.
+Both critics are updated independently by minimizing the mean squarred Bellman error $(y - Q_{\theta_i}(s, a))^2$ over minibatches from $D$.
 
-\textbf{Target policy smoothing.}
-A deterministic policy is particularly vulnerable to narrow, erroneous peaks in the learned value
-function: if the critic assigns a spuriously high value to a small region of action space, the
-actor will immediately collapse onto that region.
-TD3 regularizes against this by perturbing the target action with clipped Gaussian noise before
-evaluating the Bellman target,
+% Improve, to complex sentence
+Because the target $y$ is shared but gradients flow independently, the two critics diverge slightly, which is precisely what prevents correlated overestimation.
+
+\vspace{4pt}
+
+\textbf{Target policy smoothing}
+
+To prevent the actor from exploiting narrow, misleading peaks in the value function, 
+the target action is perturbed with clipped Gaussian noise before evaluating the Bellman target:
 \begin{equation}
   \tilde{a} = \operatorname{clip}\!\left(\pi_{\phi'}(s') + \epsilon,\;a_{\min},\;a_{\max}\right),
   \quad \epsilon \sim \operatorname{clip}\!\left(\mathcal{N}(0,\sigma),\;-c,\;c\right).
 \end{equation}
-By forcing the backup to average over a small neighbourhood of the target action, the critics are
-encouraged to learn a smoother value landscape, making individual erroneous peaks less
-exploitable by the actor~\cite{fujimoto2018:TD3}.
-The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters that control the
-effective radius of this smoothing.
+This encourages the critics to learn a smoother value landscape, making individual erroneous peaks less exploitable.
+The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters that control the effective radius of this smoothing.
 
-\textbf{Delayed policy updates.}
-Even with conservative targets and smoothed backups, updating the actor at every critic step
-introduces high variance into the policy gradient: the critic has not yet fully integrated the
-latest target information before its gradient is used to move the policy.
-TD3 therefore updates the actor only once every $K = 2$ critic steps.
-This delay ensures the critics are in a more stable and accurate state when the actor gradient
-is computed, substantially reducing the variance of policy updates and preventing the actor from
-over-adapting to transient critic errors~\cite{fujimoto2018:TD3}.
-In addition, the target networks for both actor and critics are updated via the shared Polyak
-rule~\eqref{eq:polyak}, ensuring the learning targets change slowly and the training signal
-remains consistent across consecutive gradient steps.
+\vspace{4pt}
 
-TD3 is particularly well-suited for the hockey task.
-The environment demands a combination of short-horizon precision---intercepting a fast-moving
-puck, executing a well-timed shot---and long-horizon strategic positioning and defense.
-This mixture is challenging for actor-critic methods because a single erroneous value estimate in
-a critical state can cascade into a series of aggressive, high-variance actions that destabilize
-training.
-TD3's conservative minimum targets directly bound the magnitude of such errors, target policy
-smoothing prevents the actor from locking onto narrow value peaks that may correspond to
-unrealistic shooting strategies, and delayed updates ensure the policy only improves once the
-critic has formed a reliable local picture of the value landscape.
-Together, these mechanisms provide the stable learning dynamic needed to acquire the varied
-behavioural repertoire required in the hockey environment.
+\textbf{Delayed policy updates}
+
+Even with conservative targets and smoothed backups, updating the actor at every critic step introduces high variance into the policy gradient:
+the critic has not yet fully integrated the latest target information before its gradient is used to move the policy.
+TD3 therfore updates the actor every $K$ critic steps % add here that K is most of the time 2
+This delay ensures the critics are in a more stable and accurate state when the actor gradient is computed,
+substantially reducing variance of policy updates and preventing the actor from over-adapting to transient critic errors~\cite{fujimoto2018:TD3}.
+Target networks for both actor and critics are updated via the shared Polyak rule~\eqref{eq:polyak}, 
+ensuring the learning targets change slowly and the training signal remains consistent across consecutive gradient steps.
+
+% I dont like this, bit to long, to long sentence, also not very scientific. We cant just say it ist a stable method...
+Together, these three mechanisms form a coherent defence against the instabilities of deterministic actor-critic learning. Clipped double Q-learning bounds the magnitude of value overestimation, target policy smoothing prevents the actor from locking onto narrow value peaks, and delayed updates ensure the policy only improves once the critic has formed a reliable local picture of the value landscape. This combination produces a stable and data-efficient learning dynamic in continuous action spaces.
 
 \subsection{Soft Actor-Critic}
 \label{sec:sac}

@@ -159,11 +159,14 @@ class StandardTrainer:
             episode_reward = 0
             done = False
 
+            episode_length = 0
+
             while not done:
                 action = self.agent.select_action(state, eval_mode=True)
                 state, reward, terminated, truncated, _ = self.eval_env.step(action)
                 done = terminated or truncated
                 episode_reward += reward
+                episode_length += 1
             
             eval_rewards.append(episode_reward)
 

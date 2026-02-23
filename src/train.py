@@ -27,6 +27,7 @@ from agents.create_agent import create_agent
 from agents.base_agent import BaseAgent
 from training.standard_trainer import StandardTrainer
 from training.selfplay_trainer import SelfPlayTrainer
+from training.strong_weak_trainer import StrongWeakTrainer
 
 
 def create_trainer(agent: BaseAgent, config: RLConfig) -> StandardTrainer | SelfPlayTrainer:
@@ -35,7 +36,9 @@ def create_trainer(agent: BaseAgent, config: RLConfig) -> StandardTrainer | Self
     """
     training_mode = config.get("training_mode").lower()
     
-    if training_mode == 'selfplay':
+    if training_mode == "strong_weak":
+        return StrongWeakTrainer(agent, config)
+    elif training_mode == 'selfplay':
         return SelfPlayTrainer(agent, config)
     
     elif training_mode == 'standard':
@@ -44,7 +47,7 @@ def create_trainer(agent: BaseAgent, config: RLConfig) -> StandardTrainer | Self
     else:
         raise ValueError(
             f"Unknown training mode: '{training_mode}'. "
-            f"Available: ['standard', 'selfplay']"
+            f"Available: ['standard', 'selfplay', 'strong_weak']"
         )
 
 

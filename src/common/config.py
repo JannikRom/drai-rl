@@ -42,6 +42,7 @@ class RLConfig:
     eval_episodes: int
     logging: LoggingConfig
     use_fixed_opponent: bool = False
+    use_fixed_opponent_pool: bool = False
     
 
     # Optional 
