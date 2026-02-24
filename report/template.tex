@@ -17,6 +17,7 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \usepackage{hyperref}% should be the last package you include
+\usepackage{graphicx}
 \usepackage{todonotes}
 
 \newcommand{\theteam}{}
@@ -42,11 +43,19 @@
 \input{chapters/04_discussion.tex}
 \bibliographystyle{abbrv}
 \bibliography{literatur}
+
+
 \newpage
+\section*{List of Acronyms}
 \begin{acronym}
+\acro{DQN}{Deep Q-Network}
+\acro{PPO}{Proximal Policy Optimization}
+\acro{DDPG}{Deep Deterministic Policy Gradient}
 \acro{TD3}{Twin Delayed Deep Deterministic Policy Gradient}
 \acro{SAC}{Soft Actor-Critic}
 \acro{ER}{Experience Replay}
 \acro{PER}{Prioritized Experience Replay}
+\acro{TD}{Temporal Difference}
 \end{acronym}
+
 \end{document}

@@ -82,7 +82,7 @@ pool_recency_bias: 2.0
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_v5/td3_job2"
+log_dir: "./logs_v6/td3_job2"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20

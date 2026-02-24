@@ -33,8 +33,8 @@ critic_hidden_sizes: [256, 256]
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 2.0e-4
-critic_lr: 3.0e-4
+actor_lr: 1.0e-4
+critic_lr: 2.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
@@ -45,7 +45,7 @@ policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
 noise_type: "pink" # "white" or "pink"
-noise_scale: 0.15
+noise_scale: 0.2
 # if pink noise:
 pink_beta: 1.0
 
@@ -63,7 +63,7 @@ buffer_type: "er" # "er" or "per"
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "strong_weak" # "standard" or "selfplay"
+training_mode: "report" # "standard" or "selfplay"
 total_timesteps: 2_500_000
 learning_starts: 10_000
 batch_size: 512

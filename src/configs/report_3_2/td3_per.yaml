@@ -21,7 +21,7 @@ opponent: null # "weak", "strong", null for selfplay
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.98
+gamma: 0.99
 tau: 0.005
 
 # ---------------------------------------------------------------
@@ -33,14 +33,14 @@ critic_hidden_sizes: [256, 256]
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 2.0e-4
-critic_lr: 3.0e-4
+actor_lr: 1.0e-4
+critic_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
-policy_noise: 0.25 # Gaussian noise added to target policy actions
-noise_clip: 0.5 # Clipping range for target policy noise
+policy_noise: 0.15 # Gaussian noise added to target policy actions
+noise_clip: 0.3 # Clipping range for target policy noise
 policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
@@ -63,7 +63,7 @@ per_annealing_pct: 0.8
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "strong_weak" # "standard" or "selfplay"
+training_mode: "report" # "standard" or "selfplay"
 total_timesteps: 2_500_000
 learning_starts: 10_000
 batch_size: 256

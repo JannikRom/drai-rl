@@ -1,4 +1,22 @@
 
+% --- Introduction ---
+
+
+% --- Methods ---
+
+
+@article{mnih2015human:DQN,
+  title     = {Human-level control through deep reinforcement learning},
+  author    = {Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David and others},
+  journal   = {Nature},
+  volume    = {518},
+  number    = {7540},
+  pages     = {529--533},
+  year      = {2015},
+  publisher = {Nature Publishing Group}
+}
+
+
 @article{SchulmanEtAl2017:PPO,
   author        = {John Schulman and
                    Filip Wolski and
@@ -13,7 +31,6 @@
   archiveprefix = {arXiv},
   eprint        = {1707.06347}
 }
-
 
 @inproceedings{fujimoto2018:TD3,
   title     = {Addressing Function Approximation Error in Actor-Critic Methods},
@@ -32,6 +49,15 @@
   abstract  = {In value-based reinforcement learning methods such as deep Q-learning, function approximation errors are known to lead to overestimated value estimates and suboptimal policies. We show that this problem persists in an actor-critic setting and propose novel mechanisms to minimize its effects on both the actor and the critic. Our algorithm builds on Double Q-learning, by taking the minimum value between a pair of critics to limit overestimation. We draw the connection between target networks and overestimation bias, and suggest delaying policy updates to reduce per-update error and further improve performance. We evaluate our method on the suite of OpenAI gym tasks, outperforming the state of the art in every environment tested.}
 }
 
+@article{haarnoja2018:SOFT,
+  title   = {Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor},
+  author  = {Haarnoja, Tuomas and Zhou, Aurick and Abbeel, Pieter and Levine, Sergey},
+  journal = {International Conference on Machine Learning (ICML)},
+  year    = {2018}
+}
+
+
+% - TD3 -
 
 @article{lillicrap2015:DDPG,
   title   = {Continuous control with deep reinforcement learning},
@@ -49,15 +75,8 @@
   organization = {JMLR Workshop and Conference Proceedings}
 }
 
+% - SAC -
 
-
-
-@article{haarnoja2018soft,
-  title   = {Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor},
-  author  = {Haarnoja, Tuomas and Zhou, Aurick and Abbeel, Pieter and Levine, Sergey},
-  journal = {International Conference on Machine Learning (ICML)},
-  year    = {2018}
-}
 @phdthesis{ziebart2010,
   author = {Ziebart, Brian D.},
   title  = {Modeling Purposeful Adaptive Behavior with the Principle of Maximum Causal Entropy},
@@ -66,6 +85,8 @@
   doi    = {10.1184/R1/6720692.v1},
   url    = {https://doi.org/10.1184/R1/6720692}
 }
+
+
 @article{kingma2014auto,
   title   = {Auto-Encoding Variational Bayes},
   author  = {Kingma, Diederik P. and Welling, Max},
@@ -91,12 +112,9 @@
   url     = {http://arxiv.org/abs/1812.05905}
 }
 
-@article{Fujimoto2018Addressing,
-  title     = {Addressing Function Approximation Error in Actor-Critic Methods},
-  author    = {Scott Fujimoto and Herke van Hoof and David Meger},
-  booktitle = {International Conference on Machine Learning (ICML)},
-  year      = {2018}
-}
+% - Improvements -
+
+
 @article{Schaul2015PrioritizedER,
   title   = {Prioritized Experience Replay},
   author  = {Tom Schaul and John Quan and Ioannis Antonoglou and David Silver},
@@ -104,3 +122,32 @@
   year    = {2015},
   url     = {https://arxiv.org/abs/1511.05952}
 }
+
+@inproceedings{eberhard2023pink,
+  title     = {Pink Noise Is All You Need: Colored Noise Exploration in Deep Reinforcement Learning},
+  author    = {Eberhard, Onno and Hollenstein, Jakob and Pinneri, Cristina and Martius, Georg},
+  booktitle = {Proceedings of the Eleventh International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  month     = {May},
+  url       = {https://openreview.net/forum?id=hQ9V5QN27eS}
+}
+
+
+
+% --- Evaluation ---
+
+
+
+
+% --- Discussion ---
+
+
+
+
+
+
+
+
+
+
+
