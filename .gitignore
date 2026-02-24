@@ -79,4 +79,9 @@ tmp/
 *.vrb
 *.pdf
 
+/src/setup_competition.sh
+
 !/src/training/**/*.pth
+!/src/final_model/**/*.pth
+!/src/final_model/**/*.yaml
+

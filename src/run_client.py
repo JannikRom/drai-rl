@@ -11,18 +11,32 @@ from common.config import RLConfig
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
 from train import create_agent
-CONFIG_PATH = "./configs/sac/cluster/checkpoint3_strong_baseline_er.yaml" 
-CHECKPOINT_PATH = "./logs/21_02/er/checkpoint3_strong_er_baseline/agent_final.pth" 
+
+# === Competition Agent Configs ===
+AGENTS = {
+    "drai_sac": {
+        "config": "./final_model/drai_sac/fine_tune.yaml",
+        "checkpoint": "./final_model/drai_sac/fine_tune_3M.pth",
+    },
+    "drai_td3": {
+        "config": "./final_model/drai_td3/strong_td3.yaml",
+        "checkpoint": "./final_model/drai_td3/strong_td3.pth",
+    },
+    "drai_team": {
+        "config": "./final_model/drai_team/",
+        "checkpoint": "./final_model/drai_team/",
+    },
+}
     
 
 class CompetitionAgent(Agent):
-    def __init__(self, config_path: str, checkpoint_path: str):
+    def __init__(self, agent_key: str):
         super().__init__()
-        
-        self.config = RLConfig.from_yaml(config_path)
+        cfg = AGENTS[agent_key]
+        self.config = RLConfig.from_yaml(cfg["config"])
         self.agent = create_agent(self.config)
-        print(f"Load checkpoint: {checkpoint_path}")
-        self.agent.load(checkpoint_path)
+        print(f"Load checkpoint: {cfg['checkpoint']}")
+        self.agent.load(cfg["checkpoint"])
 
     def get_step(self, observation: list[float]) -> list[float]:
         obs_array = np.array(observation)
@@ -96,7 +110,7 @@ def initialize_agent(agent_args: list[str]) -> Agent:
     parser.add_argument(
         "--agent",
         type=str,
-        choices=["drai", "weak", "strong", "random"],
+        choices=["drai_sac", "drai_td3", "drai_team", "weak", "strong", "random"],
         default="weak",
         help="Which agent to use.",
     )
@@ -104,8 +118,8 @@ def initialize_agent(agent_args: list[str]) -> Agent:
 
     # Initialize the agent based on the arguments.
     agent: Agent
-    if args.agent == "drai":
-        agent = CompetitionAgent(CONFIG_PATH, CHECKPOINT_PATH)
+    if args.agent in AGENTS:
+        agent = CompetitionAgent(args.agent)
     elif args.agent == "weak":
         agent = HockeyAgent(weak=True)
     elif args.agent == "strong":

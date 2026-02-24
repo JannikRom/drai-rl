@@ -42,3 +42,31 @@ python evaluate.py \
   --tag ablation_noise
 
 ```
+
+# Run Agent on the competition server
+
+  1. Prerequisites
+    Make sure your set_up_competition.sh contains your credentials:
+
+    ```bash
+    export COMPRL_SERVER_URL=<URL>
+    export COMPRL_SERVER_PORT=<PORT>
+    export COMPRL_ACCESS_TOKEN=<YOUR_TOKEN>
+    ```
+
+  2. Start a Remote Session
+    Connect to the cluster and navigate to your project folder:
+
+    ```bash
+    ssh $remote_machine
+    cd drai-rl/src
+    ```
+
+  3. Run Agent (without tmux)
+
+    1. Load environment: set_up_competition.sh
+    2. Start Agent:
+
+      ```bash
+        bash autorestart.sh --args --agent=drai_sac
+      ```
