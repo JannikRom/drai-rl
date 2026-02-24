@@ -6,14 +6,14 @@
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_LunarLander_pink_er"
+experiment_name: "td3_HalfCheetah_pink_er"
 seed: 3
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
 agent_type: "td3"
-env_name: "LunarLanderContinuous-v3"
+env_name: "HalfCheetah-v5"
 # if Hockey-v0:
 # mode: "NORMAL"          # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
 # opponent: "weak"        # "weak", "strong", null for selfplay
@@ -21,7 +21,7 @@ env_name: "LunarLanderContinuous-v3"
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.98
+gamma: 0.99
 tau: 0.005
 
 # ---------------------------------------------------------------
@@ -52,7 +52,7 @@ pink_beta: 1.0
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 200_000
+replay_capacity: 500_000
 buffer_type: "er" # "er" or "per"
 # if PER:
 # per_alpha: 0.6
@@ -64,7 +64,7 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 400_000
+total_timesteps: 800_000
 learning_starts: 5_000
 batch_size: 256
 
@@ -81,10 +81,10 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/LunarLander"
-save_interval: 100_000
+log_dir: "./logs/report_3_1/HalfCheetah"
+save_interval: 20_000
 eval_interval: 500
-eval_episodes: 100
+eval_episodes: 20
 
 # ---------------------------------------------------------------
 # Logging
@@ -103,7 +103,7 @@ logging:
   # Which scalar groups to write to TensorBoard
   log_losses: true
   log_per: false # set true if buffer_type: "per"
-  log_sac: false # TD3 has no SAC scalars
+  log_sac: false # SAC-specific scalars (alpha, entropy)
   log_eval: true
   log_pool: false # set true if training_mode: "selfplay"
 

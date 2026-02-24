@@ -6,13 +6,13 @@
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "sac_LunarLander_per"
+experiment_name: "sac_HalfCheetah_per"
 seed: 3
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
 agent_type: "sac"
-env_name: "LunarLanderContinuous-v3"
+env_name: "HalfCheetah-v5"
 # if Hockey-v0:
 # mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
 # opponent: "weak" # "weak", "strong", null for selfplay
@@ -36,15 +36,15 @@ tau: 0.005
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256]
-critic_hidden_sizes: [256, 256, 128]
+actor_hidden_sizes: [256, 256, 256]
+critic_hidden_sizes: [256, 256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
 critic_lr: 3.0e-4
-alpha_lr: 3.0e-4
+alpha_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # SAC Specific
@@ -55,7 +55,7 @@ target_entropy: "auto" # "auto" → -action_dim, or pass a float
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 200_000
+replay_capacity: 500_000
 buffer_type: "per" # "er" or "per"
 # if PER:
 per_alpha: 0.6
@@ -67,7 +67,7 @@ per_annealing_pct: 0.8
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 400_000
+total_timesteps: 800_000
 learning_starts: 5_000
 batch_size: 256
 
@@ -84,10 +84,10 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/LunarLander"
-save_interval: 10_000
+log_dir: "./logs/report_3_1/HalfCheetah"
+save_interval: 20_000
 eval_interval: 500
-eval_episodes: 10
+eval_episodes: 20
 
 # ---------------------------------------------------------------
 # Logging
