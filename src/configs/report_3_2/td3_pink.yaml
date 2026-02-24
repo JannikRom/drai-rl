@@ -1,12 +1,12 @@
 # ===============================================================
-# TD3 — Improved
+# TD3 — Pink
 # Twin Delayed Deep Deterministic Policy Gradient
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "report_td3_improved"
+experiment_name: "report_td3_pink"
 seed: 3
 
 # ---------------------------------------------------------------
@@ -19,16 +19,6 @@ mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
 opponent: null # "weak", "strong", null for selfplay
 
 # ---------------------------------------------------------------
-# Reward Shaping
-# ---------------------------------------------------------------
-reward_shaping:
-  touch_puck: 0.4
-  puck_direction: 0.3
-  closeness_to_puck: 0.0
-  time_penalty: 0.2
-  defensive_distance: 0.01
-
-# ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
 gamma: 0.98
@@ -37,25 +27,25 @@ tau: 0.005
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256, 256]
-critic_hidden_sizes: [256, 256, 128]
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 1.0e-4
-critic_lr: 1.0e-4
+actor_lr: 2.0e-4
+critic_lr: 3.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
-policy_noise: 0.2 # Gaussian noise added to target policy actions
-noise_clip: 0.5 # Clipping range for target policy noise
+policy_noise: 0.1 # Gaussian noise added to target policy actions
+noise_clip: 0.2 # Clipping range for target policy noise
 policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
 noise_type: "pink" # "white" or "pink"
-noise_scale: 0.1
+noise_scale: 0.15
 # if pink noise:
 pink_beta: 1.0
 
@@ -74,9 +64,9 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "strong_weak" # "standard" or "selfplay"
-total_timesteps: 1_500_000
+total_timesteps: 2_500_000
 learning_starts: 10_000
-batch_size: 256
+batch_size: 512
 
 # if selfplay:
 # pool_max_size: 20
@@ -91,7 +81,7 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_report/2_2/td3_improved"
+log_dir: "./logs_report/2_2/td3_pink"
 save_interval: 1_000_000
 eval_interval: 10_000
 eval_episodes: 100

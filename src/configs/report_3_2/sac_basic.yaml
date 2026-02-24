@@ -44,13 +44,13 @@ critic_hidden_sizes: [256, 256]
 # Learning Rates
 # ---------------------------------------------------------------
 actor_lr: 3.0e-4
-critic_lr: 3.0e-4
+critic_lr: 1.5e-4
 alpha_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # SAC Specific
 # ---------------------------------------------------------------
-alpha: 0.2 # Initial entropy coefficient
+alpha: 0.3 # Initial entropy coefficient
 target_entropy: "auto" # "auto" → -action_dim, or pass a float
 
 # ---------------------------------------------------------------
@@ -68,9 +68,9 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "strong_weak" # "standard" or "selfplay"
-total_timesteps: 1_500_000
-learning_starts: 10_000
-batch_size: 256
+total_timesteps: 2_500_000
+learning_starts: 25_000
+batch_size: 128
 
 # if selfplay:
 # pool_max_size: 20

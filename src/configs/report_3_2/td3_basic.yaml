@@ -28,24 +28,24 @@ tau: 0.005
 # Network Architecture
 # ---------------------------------------------------------------
 actor_hidden_sizes: [256, 256]
-critic_hidden_sizes: [256, 128]
+critic_hidden_sizes: [256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 1.0e-4
-critic_lr: 1.0e-4
+actor_lr: 2.0e-4
+critic_lr: 3.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
-policy_noise: 0.2 # Gaussian noise added to target policy actions
-noise_clip: 0.5 # Clipping range for target policy noise
+policy_noise: 0.15 # Gaussian noise added to target policy actions
+noise_clip: 0.3 # Clipping range for target policy noise
 policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
 noise_type: "white" # "white" or "pink"
-noise_scale: 0.2
+noise_scale: 0.15
 # if pink noise:
 # pink_beta: 1.0
 
@@ -64,9 +64,9 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "strong_weak" # "standard" or "selfplay"
-total_timesteps: 1_500_000
+total_timesteps: 2_500_000
 learning_starts: 10_000
-batch_size: 256
+batch_size: 512
 
 # if selfplay:
 # pool_max_size: 20
