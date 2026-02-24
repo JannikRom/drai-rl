@@ -64,8 +64,8 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 100_000
-learning_starts: 2_000
+total_timesteps: 200_000
+learning_starts: 1_000
 batch_size: 256
 
 # if selfplay:

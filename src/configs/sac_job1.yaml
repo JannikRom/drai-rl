@@ -68,7 +68,7 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay" # "standard" or "selfplay"
-use_fixed_opponent: True
+use_fixed_opponent: False
 total_timesteps: 3_000_000
 learning_starts: 10_000
 batch_size: 256
@@ -86,9 +86,9 @@ pool_recency_bias: 2
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/final/selfplay/"
+log_dir: "./logs/test/"
 save_interval: 500_000
-eval_interval: 50_000
+eval_interval: 1_000
 eval_episodes: 10
 
 # ---------------------------------------------------------------

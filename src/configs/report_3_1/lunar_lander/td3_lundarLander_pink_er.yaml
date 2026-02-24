@@ -27,8 +27,8 @@ tau: 0.005
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [128, 128]
-critic_hidden_sizes: [128, 128, 128]
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256, 128]
 
 # ---------------------------------------------------------------
 # Learning Rates
@@ -52,7 +52,7 @@ pink_beta: 1.0
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
+replay_capacity: 200_000
 buffer_type: "er" # "er" or "per"
 # if PER:
 # per_alpha: 0.6
@@ -64,8 +64,8 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 100_000
-learning_starts: 2_000
+total_timesteps: 400_000
+learning_starts: 5_000
 batch_size: 256
 
 # if selfplay:
@@ -81,7 +81,7 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/pendulum"
+log_dir: "./logs/report_3_1/LunarLander"
 save_interval: 100_000
 eval_interval: 500
 eval_episodes: 100

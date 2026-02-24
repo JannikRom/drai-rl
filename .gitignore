@@ -78,3 +78,5 @@ tmp/
 *.snm
 *.vrb
 *.pdf
+
+!/src/training/**/*.pth

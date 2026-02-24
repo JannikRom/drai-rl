@@ -81,7 +81,7 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/pendulum"
+log_dir: "./logs/report_3_1/LunarLander"
 save_interval: 100_000
 eval_interval: 500
 eval_episodes: 10

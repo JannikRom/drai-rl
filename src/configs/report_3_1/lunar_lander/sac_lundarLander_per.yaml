@@ -55,7 +55,7 @@ target_entropy: "auto" # "auto" → -action_dim, or pass a float
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
+replay_capacity: 200_000
 buffer_type: "per" # "er" or "per"
 # if PER:
 per_alpha: 0.6
@@ -67,7 +67,7 @@ per_annealing_pct: 0.8
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 200_000
+total_timesteps: 400_000
 learning_starts: 5_000
 batch_size: 256
 
@@ -84,7 +84,7 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/pendulum"
+log_dir: "./logs/report_3_1/LunarLander"
 save_interval: 10_000
 eval_interval: 500
 eval_episodes: 10

@@ -21,15 +21,14 @@ env_name: "LunarLanderContinuous-v3"
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.98
+gamma: 0.99
 tau: 0.005
 
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [128, 128]
-critic_hidden_sizes: [128, 128, 128]
-
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256, 128]
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
@@ -52,7 +51,7 @@ noise_scale: 0.1
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 100_000
+replay_capacity: 200_000
 buffer_type: "er" # "er" or "per"
 # if PER:
 # per_alpha: 0.6
@@ -64,8 +63,8 @@ buffer_type: "er" # "er" or "per"
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 30_000
-learning_starts: 2_000
+total_timesteps: 200_000
+learning_starts: 5_000
 batch_size: 256
 
 # if selfplay:
@@ -81,7 +80,7 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/pendulum"
+log_dir: "./logs/report_3_1/LunarLander"
 save_interval: 100_000
 eval_interval: 500
 eval_episodes: 10
