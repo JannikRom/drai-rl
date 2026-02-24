@@ -1,12 +1,12 @@
 # ===============================================================
-# TD3 — Job2 Fixed opponent
+# TD3 — Job 2 Fixed Opponent Pool (finetune)
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_job2_fixed_opponent"
-seed: 3
+experiment_name: "td3_fixed_pool_finetune_job2"
+seed: 42
 
 # ---------------------------------------------------------------
 # Environment
@@ -40,8 +40,8 @@ critic_hidden_sizes: [256, 256, 128]
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 1.0e-4
-critic_lr: 1.0e-4
+actor_lr: 5.0e-5
+critic_lr: 5.0e-5
 
 # ---------------------------------------------------------------
 # TD3 Specific
@@ -51,7 +51,7 @@ noise_clip: 0.5
 policy_delay: 2
 
 noise_type: "pink"
-noise_scale: 0.2
+noise_scale: 0.15
 pink_beta: 1.0
 
 # ---------------------------------------------------------------
@@ -64,8 +64,8 @@ buffer_type: "er"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay"
-use_fixed_opponent: True
-total_timesteps: 8_000_000
+use_fixed_opponent_pool: True
+total_timesteps: 4_000_000
 learning_starts: 10_000
 batch_size: 256
 
@@ -74,15 +74,15 @@ pool_max_size: 5
 pool_update_interval: 10_000
 pool_update_check_window: 100
 pool_update_eval_episodes: 20
-pool_update_win_rate_threshold: 0.65
-pool_strong_bot_prob: 0.8
+pool_update_win_rate_threshold: 0.60 # what we test
+pool_strong_bot_prob: 0.6
 pool_snapshot_prob: 0.5
 pool_recency_bias: 2.0
 
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs_v4/td3_job2"
+log_dir: "./logs_v5/td3_job2"
 save_interval: 100_000
 eval_interval: 25_000
 eval_episodes: 20
@@ -93,7 +93,7 @@ eval_episodes: 20
 logging:
   loss_every_steps: 100
   per_beta_every_steps: 100
-  print_every_episodes: 1
+  print_every_episodes: 1000
   avg_window: 10
   log_losses: true
   log_per: false
