@@ -15,16 +15,16 @@ from train import create_agent
 # === Competition Agent Configs ===
 AGENTS = {
     "drai_sac": {
-        "config": "./final_model/drai_sac/fine_tune.yaml",
-        "checkpoint": "./final_model/drai_sac/fine_tune_3M.pth",
+        "config": "./final_model/drai_sac/sac_final.yaml",
+        "checkpoint": "./final_model/drai_sac/sac_final.pth",
     },
     "drai_td3": {
-        "config": "./final_model/drai_td3/strong_td3.yaml",
-        "checkpoint": "./final_model/drai_td3/strong_td3.pth",
+        "config": "./final_model/drai_td3/td3_final.yaml",
+        "checkpoint": "./final_model/drai_td3/td3_final.pth",
     },
     "drai_team": {
-        "config": "./final_model/drai_team/",
-        "checkpoint": "./final_model/drai_team/",
+        "config": "./final_model/drai_team/team_final.yaml",
+        "checkpoint": "./final_model/drai_team/team_final.pth",
     },
 }
     
