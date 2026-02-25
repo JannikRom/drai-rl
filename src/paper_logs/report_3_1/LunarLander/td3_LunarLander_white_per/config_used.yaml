@@ -1,0 +1,36 @@
+experiment_name: td3_LunarLander_white_per
+seed: 3
+env_name: LunarLanderContinuous-v3
+mode: null
+opponent: null
+reward_shaping: {}
+agent_type: td3
+gamma: 0.99
+tau: 0.005
+total_timesteps: 200000
+learning_starts: 5000
+batch_size: 256
+replay_capacity: 200000
+log_dir: ./logs/report_3_1/LunarLander
+save_interval: 100000
+eval_interval: 500
+eval_episodes: 10
+actor_hidden_sizes:
+- 256
+- 256
+critic_hidden_sizes:
+- 256
+- 256
+- 128
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_noise: 0.2
+noise_clip: 0.5
+policy_delay: 2
+noise_type: white
+noise_scale: 0.1
+buffer_type: per
+per_alpha: 0.6
+per_epsilon: 1.0e-06
+per_beta_start: 0.4
+per_annealing_pct: 0.8

@@ -1,0 +1,33 @@
+experiment_name: td3_pendulum_pink_er
+seed: 3
+env_name: Pendulum-v1
+mode: null
+opponent: null
+reward_shaping: {}
+agent_type: td3
+gamma: 0.98
+tau: 0.005
+total_timesteps: 200000
+learning_starts: 1000
+batch_size: 256
+replay_capacity: 100000
+log_dir: ./logs/report_3_1/pendulum
+save_interval: 100000
+eval_interval: 500
+eval_episodes: 100
+actor_hidden_sizes:
+- 128
+- 128
+critic_hidden_sizes:
+- 128
+- 128
+- 128
+actor_lr: 0.0003
+critic_lr: 0.0003
+policy_noise: 0.2
+noise_clip: 0.5
+policy_delay: 2
+noise_type: pink
+noise_scale: 0.1
+pink_beta: 1.0
+buffer_type: er
