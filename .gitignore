@@ -86,6 +86,9 @@ tmp/
 !/src/final_model/**/*.pth
 !/src/final_model/**/*.yaml
 
-# report data
+# report logs
 !/src/logs_report/2_2/**/**/*.pth
+
+
+
 
