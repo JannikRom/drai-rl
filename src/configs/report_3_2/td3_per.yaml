@@ -40,7 +40,7 @@ critic_lr: 1.0e-4
 # TD3 Specific
 # ---------------------------------------------------------------
 policy_noise: 0.15 # Gaussian noise added to target policy actions
-noise_clip: 0.3 # Clipping range for target policy noise
+noise_clip: 0.2 # Clipping range for target policy noise
 policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
@@ -55,10 +55,10 @@ noise_scale: 0.15
 replay_capacity: 1_000_000
 buffer_type: "per" # "er" or "per"
 # if PER:
-per_alpha: 0.6
+per_alpha: 0.4
 per_epsilon: 1.0e-6
-per_beta_start: 0.4
-per_annealing_pct: 0.8
+per_beta_start: 0.5
+per_annealing_pct: 0.5
 
 # ---------------------------------------------------------------
 # Training
