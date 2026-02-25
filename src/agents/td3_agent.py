@@ -144,12 +144,12 @@ class TD3Agent(BaseAgent):
         
         # update priorities in replay buffer if using PER
         if indices is not None and len(indices) > 0:
-            td_error = torch.min(
-                F.mse_loss(current_q1, y, reduction='none').mean(dim=1, keepdim=False),
-                F.mse_loss(current_q2, y, reduction='none').mean(dim=1, keepdim=False)
-            ).detach().cpu().numpy().flatten() + 1e-6  # Avoid zero priority
-            replay_buffer.update_priorities(indices, td_error)
-        
+            with torch.no_grad():
+                td1 = torch.abs(current_q1 - y).mean(dim=1)
+                td2 = torch.abs(current_q2 - y).mean(dim=1)
+                td_errors = torch.min(td1, td2).cpu().numpy().flatten() + 1e-6
+            replay_buffer.update_priorities(indices, td_errors)
+                
         # Delayed policy update
         actor_loss = None
         if self.total_updates % self.policy_delay == 0:
