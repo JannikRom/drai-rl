@@ -52,22 +52,11 @@
 
 
 \section{Simple Environment Diagnostics}
-\subsection{Training Curves}
-
-Bla Bla
-Hier auch allgemein text und vlt. Hyperparameter
-
+This appendix presents additional training diagnostics and hyperparameter settings for each evaluated environment. Training curves illustrate reward progression, loss, and the \ac{SAC} specific entropy temperature.
 \subsection{Training Curves}
 \label{app:simple_losses}
-
-Bla Bla Bla Bla
-
-Sui Sui Sui
-
-\subsubsection{Pendulum}
-Further training diagnostics for the Pendulum environment are shown in Figure~\ref{fig:pendulum_losses}. 
-The SAC entropy temperature $\alpha$ decays steadily, reflecting increasing policy confidence. 
-TD3 losses stabilize toward the end of training.
+\subsubsection*{Pendulum}
+Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the Pendulum environment. All algorithms converge with respect to reward, actor loss, and critic loss, while SAC typically converges slightly faster. The SAC entropy temperature $\alpha$ behaves similarly for \ac{PER} and \ac{ER} variants and decreases over time, reflecting increasing policy confidence.
 
 \begin{figure}[htbp]
 \centering
@@ -80,9 +69,8 @@ TD3 losses stabilize toward the end of training.
 
 \newpage
 
-\subsubsection{Lunar Lander}
-Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_losses}. 
-Both algorithms show stable convergence, with TD3 exhibiting smoother critic losses.
+\subsubsection*{Lunar Lander}
+Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_losses}. Both algorithms exhibit similar reward convergence behavior. The \ac{SAC} actor loss decreases faster than \ac{TD3}, while \ac{TD3} with \ac{PER} remains high for a longer period during training. The entropy temperature for \ac{PER} remains noticeably higher compared to \ac{ER}, indicating increased exploration pressure throughout training.
 
 \begin{figure}[htbp]
 \centering
@@ -95,10 +83,10 @@ Both algorithms show stable convergence, with TD3 exhibiting smoother critic los
 
 \newpage
 
-\subsubsection{Half Cheetah}
-Half Cheetah diagnostics are shown in Figure~\ref{fig:halfcheetah_losses}. 
-The higher-dimensional action space leads to slower convergence, but both variants 
-achieve stable performance.
+\subsubsection*{Half Cheetah}
+Training diagnostics for Half Cheetah are shown in Figure~\ref{fig:halfcheetah_losses}. All methods converge more slowly compared to the other environments. The highest rewards are achieved by \ac{SAC} with \ac{PER}, while \ac{TD3} achieves comparable performance to \ac{SAC} with \ac{ER}. However, \ac{TD3} with \ac{ER} remains significantly lower in terms of final reward.
+
+Actor losses behave similarly across most configurations, except for \ac{TD3} with \ac{ER}, which exhibits a noticeably higher loss. For the critic loss, the \ac{TD3} \ac{ER} variant again shows lower values compared to the other methods, while \ac{SAC} with \ac{ER} is slightly noisier. Regarding the entropy temperature $\alpha$, \ac{PER} variants require higher values. First, $\alpha$  decreases, then increases, before eventually converging.
 
 \begin{figure}[htbp]
 \centering
@@ -110,19 +98,15 @@ achieve stable performance.
 \end{figure}
 
 
-\subsubsection{Pendulum}
-%plot
-\subsubsection{Lunar Lander}
-%plot
-\subsubsection{Half Cheetah}
-%plot
+\newpage
 \subsection{Hyperparameters}
 \label{app:simple_parameters}
+For reproducibility and completeness, the hyperparameters for all environments are listed below. \ac{SAC} typically performs well without extensive hyperparameter tuning, whereas \ac{TD3} often requires more careful parameter selection, particularly when combined with \ac{PER}. This is especially noticeable with respect to network architecture choices.
 \begin{table}[htbp]
+\renewcommand{\arraystretch}{0.85}
 \centering
-\caption{Hyperparameters used across algorithms.}
-\label{tab:hyperparams_all}
-
+\caption{Training hyperparameters for Pendulum}
+\vspace{-0.3cm}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Parameter} 
@@ -151,7 +135,7 @@ Entropy coefficient $\alpha$
 & 0.2 & 0.2 & -- & -- \\
 
 Replay buffer size
-& $10^6$ & $10^6$ & $10^6$ & $10^6$ \\
+& $10^5$ & $10^5$ & $10^5$ & $10^5$ \\
 
 Noise
 & -- & -- & 
@@ -159,21 +143,124 @@ $\sigma=0.2$, \newline clip=0.5
 & $\sigma=0.2$, \newline clip=0.5 \\
 
 Network architecture
-& $[512,256]$ & $[512,256]$ 
-& $[512,256]$ & $[512,256]$ \\
+& $[256,256]$ & $[256,256]$ 
+& $[128,128]$ & $[128,128]$ \\
 
 Critic architecture
-& $[512,256,128]$ & $[512,256,128]$ 
-& $[512,256,128]$ & $[512,256,128]$ \\
+& $[256,256,128]$ & $[256,256,128]$ 
+& $[128,128,128]$ & $[128,128,128]$ \\
 
 \bottomrule
 \end{tabular}
 \end{table}
 
-%table
+\begin{table}[htbp]
+\renewcommand{\arraystretch}{0.85}
+\centering
+\caption{Training hyperparameters for Lunar Lander}
+\vspace{-0.3cm}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Parameter} 
+& \textbf{SAC} 
+& \textbf{SAC}
+& \textbf{TD3}
+& \textbf{TD3} \\
+\midrule
+
+Replay buffer type
+& ER & PER & ER & PER \\
+
+
+Discount factor $\gamma$
+& 0.99 & 0.99 & 0.99 & 0.99 \\
+
+Actor learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Critic learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Entropy coefficient $\alpha$
+& 0.2 & 0.2 & -- & -- \\
+
+Replay buffer size
+& $2\times10^5$ & $2\times10^5$ & $2\times10^5$ & $2\times10^5$ \\
+
+Noise
+& -- & -- & 
+$\sigma=0.2$, \newline clip=0.5 
+& $\sigma=0.2$, \newline clip=0.5 \\
+
+Network architecture
+& $[256,256]$ & $[256,256]$ 
+& $[256,256]$ & $[256,256]$ \\
+
+Critic architecture
+& $[256,256,128]$ & $[256,256,128]$ 
+& $[256,256,128]$ & $[256,256,128]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\renewcommand{\arraystretch}{0.85}
+\centering
+\caption{Training hyperparameters for HalfCheetah}
+\vspace{-0.3cm}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Parameter} 
+& \textbf{SAC} 
+& \textbf{SAC}
+& \textbf{TD3}
+& \textbf{TD3} \\
+\midrule
+
+Replay buffer type
+& ER & PER & ER & PER \\
+
+
+Discount factor $\gamma$
+& 0.99 & 0.99 & 0.99 & 0.99 \\
+
+Actor learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Critic learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Entropy coefficient $\alpha$
+& 0.2 & 0.2 & -- & -- \\
+
+Replay buffer size
+& $8\times10^5$ & $8\times10^5$ & $8\times10^5$ & $80^5$ \\
+
+Noise
+& -- & -- & 
+$\sigma=0.2$, \newline clip=0.5 
+& $\sigma=0.2$, \newline clip=0.5 \\
+
+Network architecture
+& $[256,256, 256]$ & $[256,256, 256]$ 
+& $[256,256, 256]$ & $[256,256,256]$ \\
+
+Critic architecture
+& $[256,256,256]$ & $[256,256,256]$ 
+& $[256,256,256]$ & $[256,256,256]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 \newpage
+
 \section{Hockey Environment Diagnostics}
 sadshjashdjhaskjdhkjashdkjhaskjdhjasho ihchsaklhekhkjshdjkbawnbdwbdiuabkjbdw buiasijcbkjawbjhbjhbjchvbajwhbvjhd
 sadshjashdjhaskjdhkjashdkjhaskj dhjashoihchsaklhek hkjshdjkbawnbdwbdiuabkjbd buiasijcbkjawbjhbjhbjchvbajwhbvjhd
