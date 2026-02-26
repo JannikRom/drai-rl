@@ -49,7 +49,10 @@
 \newpage
 \appendix
 
+
+
 \section{Simple Environment Diagnostics}
+\subsection{Training Curves}
 
 Bla Bla
 Hier auch allgemein text und vlt. Hyperparameter
@@ -107,6 +110,67 @@ achieve stable performance.
 \end{figure}
 
 
+\subsubsection{Pendulum}
+%plot
+\subsubsection{Lunar Lander}
+%plot
+\subsubsection{Half Cheetah}
+%plot
+\subsection{Hyperparameters}
+\label{app:simple_parameters}
+\begin{table}[htbp]
+\centering
+\caption{Hyperparameters used across algorithms.}
+\label{tab:hyperparams_all}
+
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Parameter} 
+& \textbf{SAC} 
+& \textbf{SAC}
+& \textbf{TD3}
+& \textbf{TD3} \\
+\midrule
+
+Replay buffer type
+& ER & PER & ER & PER \\
+
+
+Discount factor $\gamma$
+& 0.98 & 0.98 & 0.98 & 0.98 \\
+
+Actor learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Critic learning rate
+& $3\times10^{-4}$ & $3\times10^{-4}$ 
+& $3\times10^{-4}$ & $3\times10^{-4}$ \\
+
+Entropy coefficient $\alpha$
+& 0.2 & 0.2 & -- & -- \\
+
+Replay buffer size
+& $10^6$ & $10^6$ & $10^6$ & $10^6$ \\
+
+Noise
+& -- & -- & 
+$\sigma=0.2$, \newline clip=0.5 
+& $\sigma=0.2$, \newline clip=0.5 \\
+
+Network architecture
+& $[512,256]$ & $[512,256]$ 
+& $[512,256]$ & $[512,256]$ \\
+
+Critic architecture
+& $[512,256,128]$ & $[512,256,128]$ 
+& $[512,256,128]$ & $[512,256,128]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+%table
 
 
 \newpage
