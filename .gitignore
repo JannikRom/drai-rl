@@ -79,6 +79,9 @@ tmp/
 *.vrb
 *.pdf
 
+# figures
+!/report/figures/*.pdf
+
 /src/setup_competition*.sh
 !/src/setup_competition_template.sh
 
@@ -88,6 +91,8 @@ tmp/
 
 # report logs
 !/src/logs_report/2_2/**/**/*.pth
+
+
 
 
 

@@ -124,7 +124,7 @@ class ReportTrainer:
             if timestep % self.config.eval_interval == 0:
                 eval_reward = self.evaluate(num_episodes=self.config.eval_episodes)
                 self.logger.log_eval(eval_reward, timestep)
-                print(f"  → Eval at step {timestep:7d}: {eval_reward:.2f}")
+                print(f"  Eval at step {timestep:7d}: {eval_reward:.2f}")
             
             if timestep % self.config.save_interval == 0:
                 ckpt = self.save_dir / f"agent_step_{timestep}.pth"
