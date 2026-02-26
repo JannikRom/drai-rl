@@ -50,7 +50,62 @@
 \appendix
 
 \section{Simple Environment Diagnostics}
+
+Bla Bla
+Hier auch allgemein text und vlt. Hyperparameter
+
+\subsection{Training Curves}
 \label{app:simple_losses}
+
+Bla Bla Bla Bla
+
+Sui Sui Sui
+
+\subsubsection{Pendulum}
+Further training diagnostics for the Pendulum environment are shown in Figure~\ref{fig:pendulum_losses}. 
+The SAC entropy temperature $\alpha$ decays steadily, reflecting increasing policy confidence. 
+TD3 losses stabilize toward the end of training.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/overview_pendulum.pdf}
+\caption{Training diagnostics for Pendulum environment. 
+    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Bottom left: actor loss. Bottom right: critic loss.}
+\label{fig:pendulum_losses}
+\end{figure}
+
+\newpage
+
+\subsubsection{Lunar Lander}
+Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_losses}. 
+Both algorithms show stable convergence, with TD3 exhibiting smoother critic losses.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/overview_lunar_lander.pdf}
+\caption{Training diagnostics for Lunar Lander environment. 
+    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Bottom left: actor loss. Bottom right: critic loss.}
+\label{fig:lunarlander_losses}
+\end{figure}
+
+\newpage
+
+\subsubsection{Half Cheetah}
+Half Cheetah diagnostics are shown in Figure~\ref{fig:halfcheetah_losses}. 
+The higher-dimensional action space leads to slower convergence, but both variants 
+achieve stable performance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/overview_half_cheetah.pdf}
+\caption{Training diagnostics for Half Cheetah environment. 
+    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Bottom left: actor loss. Bottom right: critic loss.}
+\label{fig:halfcheetah_losses}
+\end{figure}
+
 
 
 
@@ -61,7 +116,7 @@ sadshjashdjhaskjdhkjashdkjhaskj dhjashoihchsaklhek hkjshdjkbawnbdwbdiuabkjbd bui
 
 
 \subsection{Training Curves}
-\label{app:hockey_losses}
+\label{app:hockey_curves}
 
 Further training diagnostics are shown in Figure~\ref{fig:hockey_losses}. The SAC 
 entropy temperature $\alpha$ decays steadily for both variants, reflecting increasing 
