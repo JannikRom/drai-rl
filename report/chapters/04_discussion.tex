@@ -1,14 +1,14 @@
 \section{Discussion}
 \label{sec:discussion}
 
-Both SAC and TD3 proved to be well-suited algorithms for the hockey environment. SAC 
+Both \ac{SAC} and \ac{TD3} proved to be well-suited algorithms for the hockey environment. \ac{SAC} 
 converged faster and required less manual tuning due to its automatic entropy 
-regularization, while TD3 with pink noise exploration provided a competitive alternative. 
+regularization, while \ac{TD3} with pink noise exploration provided a competitive alternative. 
 Hyperparameter tuning required considerable effort, but the most significant performance 
 gains ultimately came from longer training runs and exposure to diverse opponents rather 
 than from any single algorithmic choice.
 
-The modular YAML-based framework proved valuable throughout the project, allowing rapid 
+The modular \ac{YAML}-based framework proved valuable throughout the project, allowing rapid 
 iteration over configurations without code changes. Combined with TensorBoard logging, 
 we maintained a clear picture of training progression at all times. The round-robin 
 tournament with TrueSkill ranking provided a reliable and interpretable comparison 
@@ -20,14 +20,32 @@ led to substantially stronger and more generalizable agents. Agents trained only
 the basic opponents or against pure self-play snapshots tended to overfit quickly, 
 converging to narrow strategies that exploited specific weaknesses of familiar opponents. 
 This overfitting became apparent only through the tournament, where top-ranked agents 
-unexpectedly lost to stylistically different lower-ranked opponents. The final SAC and 
-TD3 agents trained against the pre-trained pool win consistently against both the weak 
+unexpectedly lost to stylistically different lower-ranked opponents. The final \ac{SAC} and 
+\ac{TD3} agents trained against the pre-trained pool win consistently against both the weak 
 and strong basic opponent, as reflected in the win rates reported in 
-Table~\ref{tab:tournament_results} in the appendix. In hindsight, we would have invested 
+Table~\ref{tab:win_rates} in the appendix. In hindsight, we would have invested 
 more time earlier in building a larger and more varied pool, including agents trained 
 under more diverse configurations and potentially additional algorithm types, to capture 
 an even broader range of play styles.
 
+\begin{table}[h]
+\centering
+\caption{Win rates of the final agents against the basic opponents (1000 episodes each).}
+\vspace{-0.2cm}
+\label{tab:win_rates}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Agent} & \textbf{Opponent} &\textbf{Win Rate}  & \textbf{W-L-D} \\
+\midrule
+SAC (pre-trained pool)  & Basic Weak Opponent   & 99.2\% & 992-3-5   \\
+SAC (pre-trained pool)  & Basic Strong Opponent & 99.0\% & 990-9-1   \\
+TD3 (pre-trained pool)  & Basic Weak Opponent   & 98.6\% & 986-5-9   \\
+TD3 (pre-trained pool)  & Basic Strong Opponent & 98.8\% & 988-10-2  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\medskip
 Our results strongly suggest that exposure to diverse opponents is the primary driver of 
 generalization. For the live tournament against the other course participants, fine-tuning 
 against recorded opponent trajectories between matches could therefore be a particularly 
@@ -41,3 +59,6 @@ nature of iteratively training, analyzing games, and refining strategies made th
 underlying complexity of the problem genuinely concrete. The infrastructure built 
 around the training pipeline provided a solid foundation that made this iterative 
 process efficient, reproducible, and enjoyable.
+
+
+

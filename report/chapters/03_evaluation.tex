@@ -5,19 +5,25 @@ to validate the base implementations, and the hockey environment to assess the f
 pipeline including reward shaping, exploration noise, and self-play.
 
 \subsection{Simple Environments}
-We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah.  For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
-All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), reaching comparable final returns. In these environments, \ac{PER} does not lead to substantial performance differences.
+We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah. 
+For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
 
-In contrast, clearer distinctions emerge in HalfCheetah (800k steps). Both SAC and TD3 benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. Among all configurations, SAC with \ac{PER} achieves the highest final results in this environment, outperforming the other approaches. The results further indicate that SAC generally converges faster than TD3 across environments, as reflected in steeper initial learning curves (see Appendix X). The hyperparameters used for all experiments are listed in Appendix Y.
+All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), reaching comparable final returns as shown in Table~\ref{tab:benchmark_results}. 
+In these environments, \ac{PER} does not lead to substantial performance differences.
 
-\begin{table}[t]
+In contrast, clearer distinctions emerge in HalfCheetah (800k steps). 
+Both \ac{SAC} and \ac{TD3} benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. 
+Among all configurations, \ac{SAC} with \ac{PER} achieves the highest final results in this environment (Table~\ref{tab:benchmark_results}). 
+The results further indicate that \ac{SAC} generally converges faster than \ac{TD3} across environments, as reflected in steeper initial learning curves (see Appendix \ref{app:simple_losses}). 
+
+\begin{table}[h]
 \centering
 \caption{Final Reward (Avg100 $\pm$ std)}
-\vspace{4pt}
+\vspace{-0.2cm}
 \label{tab:benchmark_results}
 \begin{tabular}{lcccc}
-\hline
- & SAC + ER & SAC + PER & TD3 + ER & TD3 + PER \\
+\toprule
+ & \textbf{SAC + ER }& \textbf{SAC + PER }& \textbf{TD3 + ER }& \textbf{TD3 + PER } \\
 \hline
 Pendulum    & -145.96 $\pm$ 25.60  & -144.72 $\pm$ 24.65 & -147.11 $\pm$ 28.30 & -150.81 $\pm$ 29.23 \\
 LunarLander & 278.91 $\pm$ 15.18   & 261.56 $\pm$ 28.98  & 278.96 $\pm$ 12.55  & 273.12 $\pm$ 22.25  \\
@@ -25,6 +31,7 @@ HalfCheetah & 7580.42 $\pm$ 182.38 & 8908.11 $\pm$ 159.37 & 1726.27 $\pm$ 23.76 
 \hline
 \end{tabular}
 \end{table}
+
 
 \vspace{-0.4cm}
 
@@ -45,7 +52,7 @@ subset of tested configurations.
 \end{figure}
 
 \medskip
-SAC converges reliably and quickly due to its automatic entropy regularization and 
+\ac{SAC} converges reliably and quickly due to its automatic entropy regularization and 
 effective off-policy data reuse. Adding reward shaping accelerates early learning, as 
 penalizing passivity and rewarding puck contact guide the agent to engage with the puck 
 sooner. However, aggressively weighted shaping rewards may partially overshadow the 
@@ -54,20 +61,20 @@ Based on these observations, we adopt mild reward shaping to preserve the primac
 win signal.
 
 \medskip
-TD3 with standard white noise converges slower than SAC, as the deterministic policy 
+\ac{TD3} with standard white noise converges slower than \ac{SAC}, as the deterministic policy 
 relies entirely on externally injected noise for exploration. Replacing white noise with 
 pink noise yields a clear improvement: the temporal correlation encourages the agent to 
 commit to exploratory directions over consecutive timesteps, producing more purposeful 
 puck-approach behavior and faster convergence~\cite{eberhard2023pink}. Contrary to 
-expectations, TD3 with PER converges slower than TD3 Basic: priorities change rapidly 
+expectations, \ac{TD3} with \ac{PER} converges slower than \ac{TD3} Basic: priorities change rapidly 
 early in training, and the sampling distribution may become dominated by a small set of 
 transitions, an instability we assume outweighs the benefit of focused sampling here. 
 All variants ultimately converge and reliably beat the strong opponent.
 
-Additional diagnostics including actor and critic losses and the SAC entropy temperature 
+Additional diagnostics including actor and critic losses and the \ac{SAC} entropy temperature 
 $\alpha$ are provided in Appendix~\ref{app:hockey_curves}. Based on these experiments, 
-both SAC and TD3 were configured with low-weight reward shaping, standard experience 
-replay, and for TD3 pink noise exploration. Deeper networks with two to three hidden 
+both \ac{SAC} and \ac{TD3} were configured with low-weight reward shaping, standard experience 
+replay, and for \ac{TD3} pink noise exploration. Deeper networks with two to three hidden 
 layers of moderate width outperformed shallower alternatives, while going too deep or 
 too wide introduced instability. These configurations serve as the baseline for 
 self-play fine-tuning, with full hyperparameters in 
@@ -75,7 +82,7 @@ Tables~\ref{tab:sac_hyperparams} and~\ref{tab:td3_hyperparams}.
 
 \subsubsection*{Self-Play and Tournament Evaluation}
 
-Both SAC and TD3 were subsequently fine-tuned with the self-play framework described 
+Both \ac{SAC} and \ac{TD3} were subsequently fine-tuned with the self-play framework described 
 in Section~\ref{subsec:self_play}, where the growing opponent pool continuously 
 challenges the agent with stronger versions of itself.
 
@@ -95,7 +102,7 @@ agents had learned to exploit a specific shooting angle, deflecting the puck off
 wall to score. While effective against many opponents, these agents lost unexpectedly 
 to lower-ranked agents with a different play style, a clear sign of overfitting to a 
 narrow strategy. To address this, we fine-tuned our best existing agents against a 
-pre-trained opponent pool containing checkpoints of competent SAC and TD3 agents 
+pre-trained opponent pool containing checkpoints of competent \ac{SAC} and \ac{TD3} agents 
 trained under different seeds and configurations. A slightly reduced learning rate 
 preserved previously learned behavior while adapting to the more diverse opposition.
 

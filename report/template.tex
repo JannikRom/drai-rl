@@ -265,9 +265,10 @@ Critic architecture
 \newpage
 
 \section{Hockey Environment Diagnostics}
-sadshjashdjhaskjdhkjashdkjhaskjdhjasho ihchsaklhekhkjshdjkbawnbdwbdiuabkjbdw buiasijcbkjawbjhbjhbjchvbajwhbvjhd
-sadshjashdjhaskjdhkjashdkjhaskj dhjashoihchsaklhek hkjshdjkbawnbdwbdiuabkjbd buiasijcbkjawbjhbjhbjchvbajwhbvjhd
 
+This appendix provides additional training diagnostics, hyperparameter settings, and 
+tournament results for the hockey environment experiments described in 
+Section~\ref{sec:eval}.
 
 \subsection{Training Curves}
 \label{app:hockey_curves}
@@ -352,6 +353,46 @@ Reward shaping: puck direction   & $0.05$ \\
 \end{tabular}
 \end{table}
 
+\newpage
+\subsection{Tournament Results}
+
+The tournament was conducted as a full round-robin in which every participant played 
+1000 episodes against every other participant, once as the left and once as the right 
+player. Rankings are determined by the TrueSkill lower confidence bound 
+$\text{LCB} = \mu - 3\sigma$, where $\mu$ denotes the estimated skill and $\sigma$ 
+the uncertainty.
+
+\medskip
+Both agents fine-tuned against the pre-trained opponent pool rank first and second by 
+a clear margin, confirming the effectiveness of diverse opponent training. It is worth 
+noting that all agents ranked below the fine-tuned variants were part of the pre-trained 
+opponent pool during their training, meaning the top agents were explicitly optimized 
+to beat them. Notably, SAC trained only against the weak and strong opponent still 
+outperforms TD3 self-play, suggesting that TD3 self-play overfits to the strategies 
+present in its own snapshot pool. All learned agents reliably surpass both basic opponents, which rank at the bottom of the leaderboard.
+
+\begin{table}[htbp]
+\centering
+\caption{Final tournament results ranked by TrueSkill LCB ($\mu - 3\sigma$).
+Each participant plays 1000 episodes against every 
+other participant.}
+\label{tab:tournament_results}
+\begin{tabular}{clccccc}
+\toprule
+\textbf{Rank} & \textbf{Agent} & $\mu$ & $\sigma$ & \textbf{LCB} & \textbf{W-L-D} & \textbf{Win Rate} \\
+\midrule
+1 & SAC (pre-trained pool)    & 41.72 & 3.34 & 31.72 & 6520-438-42   & 93.1\% \\
+2 & TD3 (pre-trained pool)    & 36.59 & 3.04 & 27.48 & 5913-1044-43  & 84.5\% \\
+3 & SAC (self-play)           & 32.51 & 2.80 & 24.09 & 4417-2440-143 & 63.1\% \\
+4 & SAC (weak/strong)         & 29.12 & 2.91 & 20.39 & 3558-3251-191 & 50.8\% \\
+5 & TD3 (self-play)           & 25.25 & 2.83 & 16.76 & 3251-3434-315 & 46.4\% \\
+6 & TD3 (weak/strong)         & 21.76 & 2.89 & 13.10 & 2614-4232-154 & 37.3\% \\
+7 & Basic Strong Opponent     & 18.34 & 3.37 &  8.22 & 405-6102-493  &  5.8\% \\
+8 & Basic Weak Opponent       & 10.76 & 4.08 & -1.49 & 339-6076-585  &  4.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 
 
@@ -359,6 +400,7 @@ Reward shaping: puck direction   & $0.05$ \\
 
 
 \newpage
+
 \section*{List of Acronyms}
 \begin{acronym}
 \acro{DQN}{Deep Q-Network}
@@ -369,6 +411,8 @@ Reward shaping: puck direction   & $0.05$ \\
 \acro{ER}{Experience Replay}
 \acro{PER}{Prioritized Experience Replay}
 \acro{TD}{Temporal Difference}
+\acro{YAML}[YAML]{YAML Ain't Markup Language}
+
 \end{acronym}
 
 \end{document}

@@ -1,8 +1,25 @@
 \section{Introduction}\label{sec:intro}
-This work presents the development and evaluation of reinforcement learning agents based on the \ac{TD3} and \ac{SAC} algorithms for a competitive 1v1 hockey environment. The agents are implemented based on the original formulations of the respective algorithms as introduced in prior work, and are further extended with algorithmic and reward-based modifications to improve performance.
-Reinforcement learning in competitive environments is particularly challenging due to sparse reward structures and complex interaction dynamics between multiple agents. These characteristics complicate efficient exploration and stable policy optimization, motivating the use of additional training and algorithmic design strategies to improve learning efficiency and policy robustness.
 
-To verify the correctness and robustness of the implementations, the algorithms are first evaluated in standard benchmark environments. Subsequently, the performance of the proposed modifications is analyzed in the competitive hockey environment, where the focus lies on improving tactical behavior and policy robustness.
-For training and evaluation, we developed a modular reinforcement learning framework based on PyTorch, enabling flexible configuration of environments, algorithmic variants, and reward modifications.
+Training agents to play competitively against an opponent that actively counters their 
+behavior is a well-studied problem in reinforcement learning. In this work, we train 
+agents for a 1v1 hockey environment inspired by air hockey, where two players compete 
+on opposite sides of a rink to score goals against each other. The game requires a 
+combination of offensive and defensive skills across a fully continuous action space, 
+with scoring goals as the ultimate objective.
 
-This report describes the methodology, including the implemented algorithms and improvements (Section~\ref{sec:method}), the evaluation, which is divided into experiments on simple benchmark environments and the hockey environment (Section~\ref{sec:eval}), and a discussion of the results (Section~\ref{sec:discussion}).
+\medskip
+Generalizing across different opponent play styles proves to be the central difficulty. 
+We address this through reward shaping to accelerate early learning, exploration 
+design, and most importantly a self-play curriculum that progressively challenges the 
+agent with a diverse and evolving pool of opponents. We find that the diversity of 
+this pool, rather than any single algorithmic choice, is the primary driver of 
+agent robustness.
+
+\medskip
+We implement and compare two established off-policy algorithms, \ac{TD3} and \ac{SAC}, 
+and analyze their behavior under different training conditions. The algorithms are first 
+validated on standard continuous control benchmarks before being applied to the hockey 
+environment. Methodology is covered in Section~\ref{sec:method}, experimental results 
+in Section~\ref{sec:eval}, and conclusions in Section~\ref{sec:discussion}. 
+The full code and configuration files are available at 
+\url{https://github.com/JRombach/drai-rl}.

@@ -176,7 +176,7 @@ The parameter $\alpha$ is optimized using a gradient-based method.
 \subsection{Improvements}
 \label{sec:improvements}
 
-We implemented a framework based on YAML configuration files to manage and persist training runs,
+We implemented a framework based on \ac{YAML} configuration files to manage and persist training runs,
 enabling reproducible experiments and systematic tracking of hyperparameter changes.
 All modifications described below are applied on top of both the \ac{TD3} and \ac{SAC} base implementations.
 
@@ -219,7 +219,7 @@ To encourage defensive positioning, we additionally reward the agent for staying
     r_{\text{defense}} = \begin{cases} \dfrac{1}{1 + \|p_{\text{agent}} - g\|_2} 
     & \text{if } x_{\text{puck}} > 0, \\ 0 & \text{otherwise,}\end{cases}
 \end{equation}
-where $g$ denotes the agent's goal center. All shaping components are individually configurable via the YAML configuration file.
+where $g$ denotes the agent's goal center. All shaping components are individually configurable via the \ac{YAML} configuration file.
 
 
 \definecolor{bordergreen}{RGB}{34, 197, 94} 
