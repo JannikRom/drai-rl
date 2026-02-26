@@ -103,6 +103,7 @@ maximizes the trade-off between expected return and entropy:
 where $\rho_\pi$ denotes the state-action distribution induced by policy $\pi$ and $\mathcal{H}$
 represents the entropy of the policy at state $\mathbf{s}_t$.
 
+\medskip
 The \ac{SAC} algorithm consists of an actor, critic, and an entropy regularization term governed
 by a temperature parameter $\alpha$.
 The actor is parameterized by a neural network that defines a Gaussian distribution over the
@@ -178,7 +179,7 @@ The parameter $\alpha$ is optimized using a gradient-based method.
 
 We implemented a framework based on \ac{YAML} configuration files to manage and persist training runs,
 enabling reproducible experiments and systematic tracking of hyperparameter changes.
-All modifications described below are applied on top of both the \ac{TD3} and \ac{SAC} base implementations.
+All modifications described below are applied on top of the \ac{TD3} and \ac{SAC} base implementations.
 
 \subsubsection*{Replay Buffer}
 Since both implemented algorithms are off-policy, training relies on data stored in a replay buffer. 

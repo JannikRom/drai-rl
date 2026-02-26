@@ -55,17 +55,17 @@
 
 
 \section{Simple Environment Diagnostics}
-This appendix presents additional training diagnostics and hyperparameter settings for each evaluated environment. Training curves illustrate reward progression, loss, and the \ac{SAC} specific entropy temperature.
+This appendix presents additional training diagnostics and hyperparameter settings for each evaluated simple environment. Training curves illustrate reward progression, loss, and the \ac{SAC} specific entropy temperature.
 \subsection{Training Curves}
 \label{app:simple_losses}
 \subsubsection*{Pendulum}
-Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the Pendulum environment. All algorithms converge with respect to reward, actor loss, and critic loss, while SAC typically converges slightly faster. The SAC entropy temperature $\alpha$ behaves similarly for \ac{PER} and \ac{ER} variants and decreases over time, reflecting increasing policy confidence.
+Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the Pendulum environment. All algorithms converge with respect to reward, actor loss, and critic loss, while \ac{SAC} typically converges slightly faster. The \ac{SAC} entropy temperature $\alpha$ behaves similarly for \ac{PER} and \ac{ER} variants and decreases over time, reflecting increasing policy confidence.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/overview_pendulum.pdf}
 \caption{Training diagnostics for Pendulum environment. 
-    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Top left: average episode reward. Top right: \ac{SAC} entropy temperature $\alpha$. 
     Bottom left: actor loss. Bottom right: critic loss.}
 \label{fig:pendulum_losses}
 \end{figure}
@@ -79,7 +79,7 @@ Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_l
 \centering
 \includegraphics[width=\textwidth]{figures/overview_lunar_lander.pdf}
 \caption{Training diagnostics for Lunar Lander environment. 
-    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Top left: average episode reward. Top right: \ac{SAC} entropy temperature $\alpha$. 
     Bottom left: actor loss. Bottom right: critic loss.}
 \label{fig:lunarlander_losses}
 \end{figure}
@@ -95,7 +95,7 @@ Actor losses behave similarly across most configurations, except for \ac{TD3} wi
 \centering
 \includegraphics[width=\textwidth]{figures/overview_half_cheetah.pdf}
 \caption{Training diagnostics for Half Cheetah environment. 
-    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Top left: average episode reward. Top right: \ac{SAC} entropy temperature $\alpha$. 
     Bottom left: actor loss. Bottom right: critic loss.}
 \label{fig:halfcheetah_losses}
 \end{figure}
@@ -273,10 +273,10 @@ Section~\ref{sec:eval}.
 \subsection{Training Curves}
 \label{app:hockey_curves}
 
-Further training diagnostics are shown in Figure~\ref{fig:hockey_losses}. The SAC 
+Further training diagnostics are shown in Figure~\ref{fig:hockey_losses}. The \ac{SAC} 
 entropy temperature $\alpha$ decays steadily for both variants, reflecting increasing 
-policy confidence. The TD3 actor losses decrease monotonically into negative territory 
-as the actor learns to maximize the critic's Q-values. The critic loss of TD3 Basic 
+policy confidence. The \ac{TD3} actor losses decrease monotonically into negative territory 
+as the actor learns to maximize the critic's Q-values. The critic loss of \ac{TD3} Basic 
 appears noisier than the other variants, which may be attributable to the uncorrelated 
 white noise producing more inconsistent transition patterns in the replay buffer. 
 Critic losses decrease across all variants towards the end of training, indicating 
@@ -286,7 +286,7 @@ stable convergence.
 \centering
 \includegraphics[width=\textwidth]{figures/3_2_overview_plot.pdf}
 \caption{Training diagnostics for selected hockey environment configurations. 
-    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Top left: average episode reward. Top right: \ac{SAC} entropy temperature $\alpha$. 
     Bottom left: actor loss. Bottom right: critic loss.}
 \label{fig:hockey_losses}
 \end{figure}
@@ -298,7 +298,7 @@ stable convergence.
 
 \begin{table}[htbp]
 \centering
-\caption{SAC hyperparameters.}
+\caption{\ac{SAC} hyperparameters.}
 \vspace{-0.3cm}
 \label{tab:sac_hyperparams}
 \begin{tabular}{lc}
@@ -327,7 +327,7 @@ Reward shaping: puck direction   & $0.05$ \\
 
 \begin{table}[htbp]
 \centering
-\caption{TD3 hyperparameters.}
+\caption{\ac{TD3} hyperparameters.}
 \vspace{-0.3cm}
 \label{tab:td3_hyperparams}
 \begin{tabular}{lc}
@@ -367,8 +367,8 @@ Both agents fine-tuned against the pre-trained opponent pool rank first and seco
 a clear margin, confirming the effectiveness of diverse opponent training. It is worth 
 noting that all agents ranked below the fine-tuned variants were part of the pre-trained 
 opponent pool during their training, meaning the top agents were explicitly optimized 
-to beat them. Notably, SAC trained only against the weak and strong opponent still 
-outperforms TD3 self-play, suggesting that TD3 self-play overfits to the strategies 
+to beat them. Notably, \ac{SAC} trained only against the weak and strong opponent still 
+outperforms \ac{TD3} self-play, suggesting that \ac{TD3} self-play overfits to the strategies 
 present in its own snapshot pool. All learned agents reliably surpass both basic opponents, which rank at the bottom of the leaderboard.
 
 \begin{table}[htbp]
@@ -403,6 +403,7 @@ other participant.}
 
 \section*{List of Acronyms}
 \begin{acronym}
+    
 \acro{DQN}{Deep Q-Network}
 \acro{PPO}{Proximal Policy Optimization}
 \acro{DDPG}{Deep Deterministic Policy Gradient}
