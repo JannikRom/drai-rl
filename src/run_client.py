@@ -12,7 +12,6 @@ from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
 from train import create_agent
 
-# === Competition Agent Configs ===
 AGENTS = {
     "drai_sac": {
         "config": "./final_model/drai_sac/sac_final.yaml",

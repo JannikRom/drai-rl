@@ -177,7 +177,7 @@ The parameter $\alpha$ is optimized using a gradient-based method.
 \subsection{Improvements}
 \label{sec:improvements}
 
-We implemented a framework based on \ac{YAML} configuration files to manage and persist training runs,
+We implemented a framework based on YAML configuration files to manage and persist training runs,
 enabling reproducible experiments and systematic tracking of hyperparameter changes.
 All modifications described below are applied on top of the \ac{TD3} and \ac{SAC} base implementations.
 
@@ -204,7 +204,7 @@ We apply it as the exploration noise for \ac{TD3}, replacing the standard Gaussi
 
 \subsubsection*{Reward Shaping}
 To enhance learning in the hockey environment, we extend the default reward formulation with additional shaping terms. 
-The environment provides sparse rewards for winning and losing, with puck contact and velocity signals disabled by default. 
+The environment provides sparse rewards for winning and losing, with puck contact and direction signals disabled by default. 
 The total reward is given by $r = \sum_{i} w_i \cdot r_i$, where each $r_i$ denotes a reward component and $w_i \in \mathbb{R}$ its corresponding weight.
 
 In early training, the agent often required many timesteps before initiating puck contact. To accelerate this, we introduce a time-penalty $r_{\text{passive}}$, applied when the puck remains stationary on the agent's side beyond the first $10\%$ of episode steps,
@@ -220,7 +220,7 @@ To encourage defensive positioning, we additionally reward the agent for staying
     r_{\text{defense}} = \begin{cases} \dfrac{1}{1 + \|p_{\text{agent}} - g\|_2} 
     & \text{if } x_{\text{puck}} > 0, \\ 0 & \text{otherwise,}\end{cases}
 \end{equation}
-where $g$ denotes the agent's goal center. All shaping components are individually configurable via the \ac{YAML} configuration file.
+where $g$ denotes the agent's goal center. All shaping components are individually configurable via the YAML configuration file.
 
 
 \definecolor{bordergreen}{RGB}{34, 197, 94} 
