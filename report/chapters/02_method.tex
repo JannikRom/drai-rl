@@ -41,8 +41,7 @@ leading to suboptimal or diverging behaviour~\cite{fujimoto2018:TD3}.
 
 \ac{TD3} adresses this with three interacting mechanisms.
 
-\vspace{4pt}
-
+\medskip
 \textbf{Clipped double Q-learning}
 
 Two independent critics $Q_{\theta_1}$ and $Q_{\theta_2}$ are trained in parallel but share no parameters.
@@ -58,8 +57,7 @@ Both critics are updated independently by minimizing the mean squarred Bellman e
 Since gradients flow independently through each critic, the two networks diverge slightly,
 preventing the correlated overestimation that arises when a single critic is used.
 
-\vspace{4pt}
-
+\medskip
 \textbf{Target policy smoothing}
 
 To prevent the actor from exploiting narrow, misleading peaks in the value function, 
@@ -71,8 +69,7 @@ the target action is perturbed with clipped Gaussian noise before evaluating the
 This encourages the critics to learn a smoother value landscape, making individual erroneous peaks less exploitable.
 The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters that control the effective radius of this smoothing.
 
-\vspace{4pt}
-
+\medskip
 \textbf{Delayed policy updates}
 
 Even with conservative targets and smoothed backups, updating the actor at every critic step introduces high variance into the policy gradient:
@@ -83,6 +80,7 @@ substantially reducing variance of policy updates and preventing the actor from 
 Target networks for both actor and critics are updated via the shared Polyak rule~\eqref{eq:polyak}, 
 ensuring the learning targets change slowly and the training signal remains consistent across consecutive gradient steps.
 
+\medskip
 Togehter, these three mechanisms directy counteract the core failure modes of deteremenistic actor-critic methods:
 clipped double Q-learning reduces overestimation bias, target policy smoothing regularizes the value function against sharp local peaks,
 and delayed updates reduce gradient variance during policy optimization.
@@ -111,6 +109,7 @@ The actor is parameterized by a neural network that defines a Gaussian distribut
 continuous action space by estimating the mean $\mu_\theta(s)$ and standard deviation
 $\sigma_\theta(s)$ in its output layer.
 
+\medskip
 To ensure differentiability of the sampling process with respect to the policy parameters, the
 reparameterization trick is applied~\cite{haarnoja2018:SOFT, kingma2014auto}.
 Instead of sampling actions directly from the Gaussian distribution, actions are expressed as
@@ -188,6 +187,7 @@ Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer a
 However, uniform sampling treats all transitions equally, ignoring that transitions with large \ac{TD} errors may provide stronger learning signal. 
 To address this, we additionally implement \ac{PER}~\cite{Schaul2015PrioritizedER}.
 
+\medskip
 \ac{PER} assigns higher sampling probabilities to transitions with larger \ac{TD} errors. 
 Each transition $i$ receives priority $p_i = |\delta_i| + \varepsilon$, and is sampled according to $P(i) = p_i^\alpha / \sum_k p_k^\alpha$, where $\alpha$ controls the degree of prioritization. 
 The resulting bias is corrected via importance-sampling weights $w_i = (N^{-1} \cdot P(i)^{-1})^\beta$, with $\beta$ annealed linearly to $1$ over training. 
@@ -228,6 +228,7 @@ where $g$ denotes the agent's goal center. All shaping components are individual
 
 
 \subsubsection*{Self-Play}
+\label{subsec:self_play}
 
 To enable the agent to continuously improve against increasingly strong opposition, 
 we implement a self-play training framework inspired by AlphaZero~\cite{silver2017mastering}. 
@@ -247,6 +248,7 @@ throughout training, serving as a minimum performance bar that the agent must re
 Beyond these fixed baselines, the pool can also contain pre-trained agents of a different 
 algorithm type, providing diverse and competent opposition.
 
+\medskip
 During training, the agent's opponent is resampled every $S$ episodes. Every $K$ episodes, 
 competence is assessed via a round-robin tournament where we \textcolor{bordergreen}{evaluate against} 
 all pool members. The empirical win rate is

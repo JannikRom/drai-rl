@@ -1,5 +1,43 @@
-\section{Discussion}\label{sec:discussion}
+\section{Discussion}
+\label{sec:discussion}
 
-\lipsum[3]
+Both SAC and TD3 proved to be well-suited algorithms for the hockey environment. SAC 
+converged faster and required less manual tuning due to its automatic entropy 
+regularization, while TD3 with pink noise exploration provided a competitive alternative. 
+Hyperparameter tuning required considerable effort, but the most significant performance 
+gains ultimately came from longer training runs and exposure to diverse opponents rather 
+than from any single algorithmic choice.
 
+The modular YAML-based framework proved valuable throughout the project, allowing rapid 
+iteration over configurations without code changes. Combined with TensorBoard logging, 
+we maintained a clear picture of training progression at all times. The round-robin 
+tournament with TrueSkill ranking provided a reliable and interpretable comparison 
+across all agent variants at every stage of development.
 
+\medskip
+The most impactful finding was that training against a diverse pre-trained opponent pool 
+led to substantially stronger and more generalizable agents. Agents trained only against 
+the basic opponents or against pure self-play snapshots tended to overfit quickly, 
+converging to narrow strategies that exploited specific weaknesses of familiar opponents. 
+This overfitting became apparent only through the tournament, where top-ranked agents 
+unexpectedly lost to stylistically different lower-ranked opponents. The final SAC and 
+TD3 agents trained against the pre-trained pool win consistently against both the weak 
+and strong basic opponent, as reflected in the win rates reported in 
+Table~\ref{tab:tournament_results} in the appendix. In hindsight, we would have invested 
+more time earlier in building a larger and more varied pool, including agents trained 
+under more diverse configurations and potentially additional algorithm types, to capture 
+an even broader range of play styles.
+
+Our results strongly suggest that exposure to diverse opponents is the primary driver of 
+generalization. For the live tournament against the other course participants, fine-tuning 
+against recorded opponent trajectories between matches could therefore be a particularly 
+effective strategy to gain ranking, as it would allow the agent to adapt directly to the 
+playing styles encountered in the competition.
+
+\medskip
+Overall, the project offered valuable practical insight into the challenges of 
+reinforcement learning that goes well beyond theoretical study alone. The hands-on 
+nature of iteratively training, analyzing games, and refining strategies made the 
+underlying complexity of the problem genuinely concrete. The infrastructure built 
+around the training pipeline provided a solid foundation that made this iterative 
+process efficient, reproducible, and enjoyable.

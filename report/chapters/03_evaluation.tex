@@ -1,107 +1,106 @@
 \section{Evaluation}\label{sec:eval}
-In this section, we evaluate the performance of the implemented algorithms and the proposed improvements across multiple experimental settings. The evaluation is structured in three stages.
-First, we assess the general performance and stability of the algorithms in three commonly used benchmark environments.
-Second, we analyze training behavior in the hockey environment, with particular focus on the impact of the introduced modifications, including self-play and other algorithmic adjustments. 
-Finally, we evaluate the relative playing strength of the resulting agents in a competitive tournament setting. Match outcomes are aggregated and modeled using the Placket-Luce rating system in order to obtain a grounded ranking of agents. This allows a fundamental comparison of different training configurations that goes beyond the performance metrics of a single run.
+
+We evaluate both algorithms across two settings: standard continuous control benchmarks 
+to validate the base implementations, and the hockey environment to assess the full 
+pipeline including reward shaping, exploration noise, and self-play.
+
 \subsection{Simple Environments}
 We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah.  For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
 All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), reaching comparable final returns. In these environments, \ac{PER} does not lead to substantial performance differences.
 
-In contrast, clearer distinctions emerge in HalfCheetah (800k steps). Both SAC and TD3 benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. Among all configurations, SAC with \ac{PER} achieves the highest final results in this environment, outperforming the other approaches. The results further indicate that SAC generally converges faster than TD3 across environments, as reflected in steeper initial learning curves (see Appendix \ref{app:simple_losses}). 
+In contrast, clearer distinctions emerge in HalfCheetah (800k steps). Both SAC and TD3 benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. Among all configurations, SAC with \ac{PER} achieves the highest final results in this environment, outperforming the other approaches. The results further indicate that SAC generally converges faster than TD3 across environments, as reflected in steeper initial learning curves (see Appendix X). The hyperparameters used for all experiments are listed in Appendix Y.
 
-\begin{table}[htbp]
+\begin{table}[t]
 \centering
 \caption{Final Reward (Avg100 $\pm$ std)}
-\vspace{-0.3cm}
+\vspace{4pt}
 \label{tab:benchmark_results}
 \begin{tabular}{lcccc}
-\toprule
- & \textbf{SAC + ER }& \textbf{SAC + PER }& \textbf{TD3 + ER }& \textbf{TD3 + PER } \\
 \hline
-Pendulum    & -145.96 $\pm$ 25.60    &  -144.72 $\pm$ 24.65 & -147.11 $\pm$ 28.30    & -150.81 $\pm$ 29.23 \\
-LunarLander & 278.91 $\pm$ 15.18   & 261.56 $\pm$ 28.98 & 278.96 $\pm$ 12.55 & 273.12 $\pm$ 22.25  \\
-HalfCheetah &  7580.42 $\pm$ 182.38  & 8908.11 $\pm$ 159.37 & 1726.27 $\pm$ 23.76 &  6421.28 $\pm$ 240.71\\
+ & SAC + ER & SAC + PER & TD3 + ER & TD3 + PER \\
+\hline
+Pendulum    & -145.96 $\pm$ 25.60  & -144.72 $\pm$ 24.65 & -147.11 $\pm$ 28.30 & -150.81 $\pm$ 29.23 \\
+LunarLander & 278.91 $\pm$ 15.18   & 261.56 $\pm$ 28.98  & 278.96 $\pm$ 12.55  & 273.12 $\pm$ 22.25  \\
+HalfCheetah & 7580.42 $\pm$ 182.38 & 8908.11 $\pm$ 159.37 & 1726.27 $\pm$ 23.76 & 6421.28 $\pm$ 240.71\\
 \hline
 \end{tabular}
 \end{table}
 
-
+\vspace{-0.4cm}
 
 \subsection{Hockey Environment}
 
-After validating the algorithms on standard continuous control benchmarks, we evaluate 
-them in the hockey environment. Each variant is trained for $2.5 \times 10^6$ timesteps 
-against a mixture of the weak and strong basic opponent without self-play, serving as a 
-first assessment of how the different improvements affect learning. Evaluation rewards are 
-computed exclusively against the strong opponent using the sparse reward ($-10$ loss, 
-$0$ draw, $+10$ win). Figure~\ref{fig:hockey_rewards} shows learning curves for a 
-representative subset of tested configurations.
+After validating the algorithms on standard benchmarks, we evaluate them in the hockey 
+environment. Each variant is trained for $2.5 \times 10^6$ timesteps against a mixture 
+of the weak and strong basic opponent without self-play. Evaluation rewards are computed 
+exclusively against the strong opponent using the sparse reward ($-10$ loss, $0$ draw, 
+$+10$ win). Figure~\ref{fig:hockey_rewards} shows learning curves for a representative 
+subset of tested configurations.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.80\textwidth]{./figures/3_2_reward_plot.pdf}
-    \caption{Avg. episode reward (mean ± eval variability).}
+    \caption{Avg. episode reward (mean $\pm$ eval variability).}
     \label{fig:hockey_rewards}
 \end{figure}
 
-
+\medskip
 SAC converges reliably and quickly due to its automatic entropy regularization and 
-effective off-policy data reuse. Adding reward shaping accelerates early learning, 
-as penalizing passivity and rewarding puck contact guide the agent to engage with the 
-puck sooner. However, aggressively weighted shaping rewards may partially overshadow 
-the dominant win signal, causing the agent to prioritize intermediate behaviors over 
-scoring, which manifests as a slightly delayed convergence. Based on these observations, 
-we adopt mild reward shaping to preserve the primacy of the win signal.
+effective off-policy data reuse. Adding reward shaping accelerates early learning, as 
+penalizing passivity and rewarding puck contact guide the agent to engage with the puck 
+sooner. However, aggressively weighted shaping rewards may partially overshadow the 
+dominant win signal, causing the agent to prioritize intermediate behaviors over scoring. 
+Based on these observations, we adopt mild reward shaping to preserve the primacy of the 
+win signal.
 
+\medskip
 TD3 with standard white noise converges slower than SAC, as the deterministic policy 
 relies entirely on externally injected noise for exploration. Replacing white noise with 
 pink noise yields a clear improvement: the temporal correlation encourages the agent to 
 commit to exploratory directions over consecutive timesteps, producing more purposeful 
-puck-approach behavior and faster convergence, consistent with the findings of 
-Eberhard et al.~\cite{eberhard2023pink}.
+puck-approach behavior and faster convergence~\cite{eberhard2023pink}. Contrary to 
+expectations, TD3 with PER converges slower than TD3 Basic: priorities change rapidly 
+early in training, and the sampling distribution may become dominated by a small set of 
+transitions, an instability we assume outweighs the benefit of focused sampling here. 
+All variants ultimately converge and reliably beat the strong opponent.
 
-Contrary to expectations, TD3 with PER converges slower than TD3 Basic. In early 
-training, priorities change rapidly as the value function is still far from converged, 
-and the sampling distribution may become dominated by a small set of transitions. 
-We assume this instability, combined with the importance-sampling correction dampening 
-updates during the $\beta$ annealing phase, outweighs the benefit of focused sampling 
-in this setting. All variants ultimately converge and reliably beat the strong opponent.
+Additional diagnostics including actor and critic losses and the SAC entropy temperature 
+$\alpha$ are provided in Appendix~\ref{app:hockey_curves}. Based on these experiments, 
+both SAC and TD3 were configured with low-weight reward shaping, standard experience 
+replay, and for TD3 pink noise exploration. Deeper networks with two to three hidden 
+layers of moderate width outperformed shallower alternatives, while going too deep or 
+too wide introduced instability. These configurations serve as the baseline for 
+self-play fine-tuning, with full hyperparameters in 
+Tables~\ref{tab:sac_hyperparams} and~\ref{tab:td3_hyperparams}.
 
-Additional training diagnostics including actor and critic losses as well as the SAC 
-entropy temperature $\alpha$ are provided in Appendix~\ref{app:hockey_curves}. 
-The entropy temperature decays steadily over training, reflecting increasing policy 
-confidence. The TD3 actor losses decrease monotonically into negative territory as 
-expected, and critic losses remain bounded and gradually decrease across all variants, 
-indicating stable value function learning.
+\subsubsection*{Self-Play and Tournament Evaluation}
+
+Both SAC and TD3 were subsequently fine-tuned with the self-play framework described 
+in Section~\ref{subsec:self_play}, where the growing opponent pool continuously 
+challenges the agent with stronger versions of itself.
+
+To evaluate agents throughout the development process, we implemented a round-robin 
+tournament in which every participant plays $n$ episodes as both the left and right 
+player against every other participant. Rankings are determined via 
+TrueSkill~\cite{herbrich2006trueskill}, a Bayesian rating system updating a skill 
+estimate $\mu_i$ and uncertainty $\sigma_i$ after every matchup, providing more robust 
+rankings than simple win-rate averaging. Training progress was tracked via TensorBoard, 
+logging standard metrics alongside self-play specific quantities such as win rate 
+against the pool and pool size over time, which proved valuable for monitoring 
+curriculum progression.
 
 \medskip
-Based on these experiments, both SAC and TD3 were configured with low-weight reward shaping and standard experience replay. 
-For TD3, pink noise was selected as the exploration strategy given its faster convergence. 
-In both cases, deeper networks with two to three hidden layers of moderate width outperformed shallower alternatives, 
-suggesting the hockey environment benefits from additional representational capacity, while networks 
-that were too deep or too wide introduced instability. These configurations serve as the 
-baseline for subsequent self-play fine-tuning, with full hyperparameters listed in 
-Tables~\ref{tab:sac_hyperparams} and~\ref{tab:td3_hyperparams} in the appendix.
+Inspecting individual games of top-ranked agents revealed a recurring pattern: several 
+agents had learned to exploit a specific shooting angle, deflecting the puck off the 
+wall to score. While effective against many opponents, these agents lost unexpectedly 
+to lower-ranked agents with a different play style, a clear sign of overfitting to a 
+narrow strategy. To address this, we fine-tuned our best existing agents against a 
+pre-trained opponent pool containing checkpoints of competent SAC and TD3 agents 
+trained under different seeds and configurations. A slightly reduced learning rate 
+preserved previously learned behavior while adapting to the more diverse opposition.
 
-
-
-
-
-
-
-
-Own vs. Standard -> trained gegen strong und weak
-
-Plot max 4/ 5 models
-TD3 mit PER 
-SAC (original vs own)
-TD3 (original vs own)
-
-
-Self Play + Turnier -> Auswahl von model für Turnier
-
-jeweils 1 selfplay (ohne reward shaping)
-jeweils 1 gegen strong/ weak trainiert
-jeweils reward shaping (mit oder ohne selfplay)
-jeweils 1 nur gegen strong trainiert 
-basic strong/ weak
+\medskip
+The final tournament results are provided in Table~\ref{tab:tournament_results} in the 
+appendix. Agents trained with the pre-trained opponent pool consistently ranked highest, 
+confirming that stylistic diversity in the training curriculum is key to producing 
+strong and generalizable agents.
