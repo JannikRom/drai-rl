@@ -1,0 +1,35 @@
+experiment_name: report_td3_per
+seed: 3
+env_name: Hockey-v0
+mode: NORMAL
+opponent: strong
+reward_shaping: {}
+agent_type: td3
+gamma: 0.99
+tau: 0.005
+total_timesteps: 2500000
+learning_starts: 10000
+batch_size: 256
+replay_capacity: 1000000
+log_dir: ./logs_report/2_2/td3_per
+save_interval: 1000000
+eval_interval: 10000
+eval_episodes: 100
+actor_hidden_sizes:
+- 256
+- 256
+critic_hidden_sizes:
+- 256
+- 256
+actor_lr: 0.0001
+critic_lr: 0.0001
+policy_noise: 0.15
+noise_clip: 0.2
+policy_delay: 2
+noise_type: white
+noise_scale: 0.15
+buffer_type: per
+per_alpha: 0.4
+per_epsilon: 1.0e-06
+per_beta_start: 0.5
+per_annealing_pct: 0.5

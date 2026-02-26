@@ -7,7 +7,69 @@ Finally, we evaluate the relative playing strength of the resulting agents in a 
 We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah.  For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
 
 
+
 \subsection{Hockey Environment}
+
+After validating the algorithms on standard continuous control benchmarks, we evaluate 
+them in the hockey environment. Each variant is trained for $2.5 \times 10^6$ timesteps 
+against a mixture of the weak and strong basic opponent without self-play, serving as a 
+first assessment of how the different improvements affect learning. Evaluation rewards are 
+computed exclusively against the strong opponent using the sparse reward ($-10$ loss, 
+$0$ draw, $+10$ win). Figure~\ref{fig:hockey_rewards} shows learning curves for a 
+representative subset of tested configurations.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.80\textwidth]{./figures/3_2_reward_plot.pdf}
+    \caption{Avg. episode reward (mean ± eval variability).}
+    \label{fig:hockey_rewards}
+\end{figure}
+
+
+SAC converges reliably and quickly due to its automatic entropy regularization and 
+effective off-policy data reuse. Adding reward shaping accelerates early learning, 
+as penalizing passivity and rewarding puck contact guide the agent to engage with the 
+puck sooner. However, aggressively weighted shaping rewards may partially overshadow 
+the dominant win signal, causing the agent to prioritize intermediate behaviors over 
+scoring, which manifests as a slightly delayed convergence. Based on these observations, 
+we adopt mild reward shaping to preserve the primacy of the win signal.
+
+TD3 with standard white noise converges slower than SAC, as the deterministic policy 
+relies entirely on externally injected noise for exploration. Replacing white noise with 
+pink noise yields a clear improvement: the temporal correlation encourages the agent to 
+commit to exploratory directions over consecutive timesteps, producing more purposeful 
+puck-approach behavior and faster convergence, consistent with the findings of 
+Eberhard et al.~\cite{eberhard2023pink}.
+
+Contrary to expectations, TD3 with PER converges slower than TD3 Basic. In early 
+training, priorities change rapidly as the value function is still far from converged, 
+and the sampling distribution may become dominated by a small set of transitions. 
+We assume this instability, combined with the importance-sampling correction dampening 
+updates during the $\beta$ annealing phase, outweighs the benefit of focused sampling 
+in this setting. All variants ultimately converge and reliably beat the strong opponent.
+
+Additional training diagnostics including actor and critic losses as well as the SAC 
+entropy temperature $\alpha$ are provided in Appendix~\ref{app:hockey_losses}. 
+The entropy temperature decays steadily over training, reflecting increasing policy 
+confidence. The TD3 actor losses decrease monotonically into negative territory as 
+expected, and critic losses remain bounded and gradually decrease across all variants, 
+indicating stable value function learning.
+
+\medskip
+Based on these experiments, both SAC and TD3 were configured with low-weight reward shaping and standard experience replay. 
+For TD3, pink noise was selected as the exploration strategy given its faster convergence. 
+In both cases, deeper networks with two to three hidden layers of moderate width outperformed shallower alternatives, 
+suggesting the hockey environment benefits from additional representational capacity, while networks 
+that were too deep or too wide introduced instability. These configurations serve as the 
+baseline for subsequent self-play fine-tuning, with full hyperparameters listed in 
+Tables~\ref{tab:sac_hyperparams} and~\ref{tab:td3_hyperparams} in the appendix.
+
+
+
+
+
+
+
 
 Own vs. Standard -> trained gegen strong und weak
 

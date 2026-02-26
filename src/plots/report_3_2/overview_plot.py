@@ -152,7 +152,7 @@ color_map = draw_curves(
     ax_reward,
     data_dir = os.path.join(BASE_DIR, "rewards"),
     agents   = ALL_AGENTS,
-    ylabel   = "Reward", title = "Reward",
+    ylabel   = "Avg. Episode Reward", title = "Episode Rewards",
     **REWARD_CFG,
 )
 
@@ -160,7 +160,7 @@ draw_curves(
     ax_alpha,
     data_dir  = os.path.join(BASE_DIR, "alpha"),
     agents    = SAC_AGENTS,
-    ylabel    = "Alpha", title = "Alpha",
+    ylabel    = "Entropy Temp. $\\alpha$", title = "SAC $\\alpha$",
     color_map = {k: color_map[k] for k in dict(SAC_AGENTS) if k in color_map},
     **ALPHA_CFG,
 )
@@ -170,7 +170,7 @@ draw_curves(
     ax_actor,
     data_dir  = os.path.join(BASE_DIR, "actor_loss"),
     agents    = LOSS_AGENTS,
-    ylabel    = "Actor Loss", title = "Actor Loss",
+    ylabel    = "Actor Loss", title = "Actor",
     color_map = {k: color_map[k] for k in dict(LOSS_AGENTS) if k in color_map},
     **ACTOR_CFG,
 )
@@ -179,7 +179,7 @@ draw_curves(
     ax_critic,
     data_dir  = os.path.join(BASE_DIR, "critic_loss"),
     agents    = LOSS_AGENTS,
-    ylabel    = "Critic Loss", title = "Critic Loss",
+    ylabel    = "Critic Loss", title = "Critic",
     color_map = {k: color_map[k] for k in dict(LOSS_AGENTS) if k in color_map},
     **CRITIC_CFG,
 )
@@ -205,7 +205,7 @@ leg = fig.legend(
     edgecolor      = "#888888",
     framealpha     = 1.0,
 
-    bbox_to_anchor = (0.5, 0.-0.05),
+    bbox_to_anchor = (0.5, 0.-0.06),
     bbox_transform = fig.transFigure,
 )
 leg.get_frame().set_linewidth(0.8)

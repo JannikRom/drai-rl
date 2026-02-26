@@ -120,8 +120,8 @@ for agent_key, agent_label in AGENTS:
     )
 
 ax.set_xlabel("Steps")
-ax.set_ylabel("Reward")
-ax.set_title("Training Reward Comparison")
+ax.set_ylabel("Avg. Episode Reward")
+ax.set_title("Episode Rewards")
 leg = ax.legend(
     loc="lower right",
     frameon=True,
@@ -131,10 +131,10 @@ leg = ax.legend(
 )
 leg.get_frame().set_linewidth(0.8)
 ax.grid(True, which="major", linestyle="--", linewidth=0.5, alpha=0.5)
-ax.set_axisbelow(True)  
+ax.set_axisbelow(True)
 
-fig.tight_layout()
+fig.tight_layout(pad=0.5)
 out_path = os.path.join(os.path.dirname(__file__), "reward_plot.pdf")
-fig.savefig(out_path)
+fig.savefig(out_path, bbox_inches="tight", pad_inches=0.06)
 print(f"Saved plot to {out_path}")
 plt.show()

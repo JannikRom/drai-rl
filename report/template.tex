@@ -11,6 +11,8 @@
 \usepackage{amssymb}
 \usepackage{acronym}
 \usepackage{lipsum}
+\usepackage{booktabs}
+\usepackage{caption}
 
 \usepackage{geometry}
 \geometry{left=2.8cm,right=2.8cm,top=2.6cm,bottom=2.6cm}
@@ -43,6 +45,108 @@
 \input{chapters/04_discussion.tex}
 \bibliographystyle{abbrv}
 \bibliography{literatur}
+
+\newpage
+\appendix
+
+\section{Simple Environment Diagnostics}
+\label{app:simple_losses}
+
+
+
+\newpage
+\section{Hockey Environment Diagnostics}
+sadshjashdjhaskjdhkjashdkjhaskjdhjasho ihchsaklhekhkjshdjkbawnbdwbdiuabkjbdw buiasijcbkjawbjhbjhbjchvbajwhbvjhd
+sadshjashdjhaskjdhkjashdkjhaskj dhjashoihchsaklhek hkjshdjkbawnbdwbdiuabkjbd buiasijcbkjawbjhbjhbjchvbajwhbvjhd
+
+
+\subsection{Training Curves}
+\label{app:hockey_losses}
+
+Further training diagnostics are shown in Figure~\ref{fig:hockey_losses}. The SAC 
+entropy temperature $\alpha$ decays steadily for both variants, reflecting increasing 
+policy confidence. The TD3 actor losses decrease monotonically into negative territory 
+as the actor learns to maximize the critic's Q-values. The critic loss of TD3 Basic 
+appears noisier than the other variants, which may be attributable to the uncorrelated 
+white noise producing more inconsistent transition patterns in the replay buffer. 
+Critic losses decrease across all variants towards the end of training, indicating 
+stable convergence.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/3_2_overview_plot.pdf}
+\caption{Training diagnostics for selected hockey environment configurations. 
+    Top left: average episode reward. Top right: SAC entropy temperature $\alpha$. 
+    Bottom left: actor loss. Bottom right: critic loss.}
+\label{fig:hockey_losses}
+\end{figure}
+
+
+\subsection{Hyperparameters}
+
+\vspace{+0.6cm}
+
+\begin{table}[htbp]
+\centering
+\caption{SAC hyperparameters.}
+\vspace{-0.3cm}
+\label{tab:sac_hyperparams}
+\begin{tabular}{lc}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+Discount factor $\gamma$         & $0.98$ \\
+Soft update $\tau$               & $0.005$ \\
+Actor learning rate              & $3 \times 10^{-4}$ \\
+Critic learning rate             & $3 \times 10^{-4}$ \\
+$\alpha$ learning rate           & $1 \times 10^{-4}$ \\
+Initial entropy coefficient $\alpha$ & $0.2$ \\
+Target entropy                   & $-|\mathcal{A}|$ \\
+Actor architecture               & $[512, 256]$ \\
+Critic architecture              & $[512, 256, 128]$ \\
+Replay buffer size               & $10^6$ \\
+Batch size                       & $256$ \\
+Learning starts                  & $10{,}000$ \\
+Reward shaping: touch puck       & $0.1$ \\
+Reward shaping: puck direction   & $0.05$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{+0.6cm}
+
+\begin{table}[htbp]
+\centering
+\caption{TD3 hyperparameters.}
+\vspace{-0.3cm}
+\label{tab:td3_hyperparams}
+\begin{tabular}{lc}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value} \\
+\midrule
+Discount factor $\gamma$         & $0.98$ \\
+Soft update $\tau$               & $0.005$ \\
+Actor learning rate              & $3 \times 10^{-4}$ \\
+Critic learning rate             & $3 \times 10^{-4}$ \\
+Policy noise $\sigma$            & $0.2$ \\
+Noise clip                       & $0.5$ \\
+Policy delay                     & $2$ \\
+Exploration noise (pink, $\beta=1$) & $0.15$ \\
+Actor architecture               & $[256, 256, 256]$ \\
+Critic architecture              & $[256, 256, 128]$ \\
+Replay buffer size               & $10^6$ \\
+Batch size                       & $256$ \\
+Learning starts                  & $10{,}000$ \\
+Reward shaping: touch puck       & $0.1$ \\
+Reward shaping: puck direction   & $0.05$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+
 
 
 \newpage
