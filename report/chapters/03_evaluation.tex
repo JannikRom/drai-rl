@@ -5,6 +5,25 @@ Second, we analyze training behavior in the hockey environment, with particular 
 Finally, we evaluate the relative playing strength of the resulting agents in a competitive tournament setting. Match outcomes are aggregated and modeled using the Placket-Luce rating system in order to obtain a grounded ranking of agents. This allows a fundamental comparison of different training configurations that goes beyond the performance metrics of a single run.
 \subsection{Simple Environments}
 We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah.  For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
+All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), reaching comparable final returns. In these environments, \ac{PER} does not lead to substantial performance differences.
+
+In contrast, clearer distinctions emerge in HalfCheetah (800k steps). Both SAC and TD3 benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. Among all configurations, SAC with \ac{PER} achieves the highest final results in this environment, outperforming the other approaches. The results further indicate that SAC generally converges faster than TD3 across environments, as reflected in steeper initial learning curves (see Appendix X). The hyperparameters used for all experiments are listed in Appendix Y.
+
+\begin{table}[t]
+\centering
+\caption{Final Reward (Avg100 $\pm$ std)}
+\vspace{4pt}
+\label{tab:benchmark_results}
+\begin{tabular}{lcccc}
+\hline
+ & SAC + ER & SAC + PER & TD3 + ER & TD3 + PER \\
+\hline
+Pendulum    & -145.96 $\pm$ 25.60    &  -144.72 $\pm$ 24.65 & -147.11 $\pm$ 28.30    & -150.81 $\pm$ 29.23 \\
+LunarLander & 278.91 $\pm$ 15.18   & 261.56 $\pm$ 28.98 & 278.96 $\pm$ 12.55 & 273.12 $\pm$ 22.25  \\
+HalfCheetah &  7580.42 $\pm$ 182.38  & 8908.11 $\pm$ 159.37 & 1726.27 $\pm$ 23.76 &  6421.28 $\pm$ 240.71\\
+\hline
+\end{tabular}
+\end{table}
 
 
 

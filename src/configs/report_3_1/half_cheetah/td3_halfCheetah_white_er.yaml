@@ -27,8 +27,8 @@ tau: 0.005
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256]
-critic_hidden_sizes: [256, 256, 128]
+actor_hidden_sizes: [256, 256, 256]
+critic_hidden_sizes: [256, 256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
@@ -52,7 +52,7 @@ noise_scale: 0.1
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
-replay_capacity: 500_000
+replay_capacity: 1_000_000
 buffer_type: "er" # "er" or "per"
 # if PER:
 # per_alpha: 0.6
@@ -82,7 +82,7 @@ batch_size: 256
 # Saving
 # ---------------------------------------------------------------
 log_dir: "./logs/report_3_1/HalfCheetah"
-save_interval: 20_000
+save_interval: 200_000
 eval_interval: 500
 eval_episodes: 20
 

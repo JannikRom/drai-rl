@@ -16,14 +16,36 @@ save_interval: 1000000
 eval_interval: 10000
 eval_episodes: 100
 actor_hidden_sizes:
-- 256
-- 256
+  - 256
+  - 256
 critic_hidden_sizes:
-- 256
-- 256
+  - 256
+  - 256
 actor_lr: 0.0003
 critic_lr: 0.0003
 alpha_lr: 0.0001
 alpha: 0.2
 target_entropy: auto
 buffer_type: er
+logging:
+  # TensorBoard scalar intervals (in timesteps)
+  loss_every_steps: 100
+  per_beta_every_steps: 100
+
+  # Console print interval (in episodes)
+  print_every_episodes: 500
+
+  # Moving-average window for console + TensorBoard
+  avg_window: 50
+
+  # Which scalar groups to write to TensorBoard
+  log_losses: true
+  log_per: false # set true if buffer_type: "per"
+  log_sac: true # SAC-specific scalars (alpha, entropy)
+  log_eval: true
+  log_pool: true # set true if training_mode: "selfplay"
+
+  # Artefacts saved at end of training
+  save_reward_plot: true
+  save_numpy_arrays: true
+  save_config_yaml: true

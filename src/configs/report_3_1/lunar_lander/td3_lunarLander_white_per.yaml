@@ -55,16 +55,16 @@ noise_scale: 0.1
 replay_capacity: 200_000
 buffer_type: "per" # "er" or "per"
 #if PER:
-per_alpha: 0.6
-per_epsilon: 1.0e-6
-per_beta_start: 0.4
+per_alpha: 0.4
+per_epsilon: 1.0e-8
+per_beta_start: 0.6
 per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
 training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 200_000
+total_timesteps: 800_000
 learning_starts: 5_000
 batch_size: 256
 

@@ -1,72 +1,72 @@
 # ===============================================================
-# TD3 — Template
+# TD3 — Pink
 # Twin Delayed Deep Deterministic Policy Gradient
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "td3_HalfCheetah_white_per"
+experiment_name: "report_td3_pink"
 seed: 3
 
 # ---------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------
 agent_type: "td3"
-env_name: "HalfCheetah-v5"
+env_name: "Hockey-v0"
 # if Hockey-v0:
-# mode: "NORMAL"          # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
-# opponent: "weak"        # "weak", "strong", null for selfplay
+mode: "NORMAL" # "NORMAL", "TRAIN_SHOOTING", "TRAIN_DEFENSE"
+opponent: null # "weak", "strong", null for selfplay
 
 # ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.99
+gamma: 0.98
 tau: 0.005
 
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256, 256]
-critic_hidden_sizes: [256, 256, 256]
+actor_hidden_sizes: [256, 256]
+critic_hidden_sizes: [256, 256]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 3.0e-4
-critic_lr: 3.0e-4
+actor_lr: 1.0e-4
+critic_lr: 2.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
-policy_noise: 0.2 # Gaussian noise added to target policy actions
-noise_clip: 0.5 # Clipping range for target policy noise
+policy_noise: 0.1 # Gaussian noise added to target policy actions
+noise_clip: 0.2 # Clipping range for target policy noise
 policy_delay: 2 # Actor update frequency (every N critic updates)
 
 # Exploration noise
-noise_type: "white" # "white" or "pink"
-noise_scale: 0.1
+noise_type: "pink" # "white" or "pink"
+noise_scale: 0.2
 # if pink noise:
-# pink_beta: 1.0
+pink_beta: 1.0
 
 # ---------------------------------------------------------------
 # Replay Buffer
 # ---------------------------------------------------------------
 replay_capacity: 1_000_000
-buffer_type: "per" # "er" or "per"
+buffer_type: "er" # "er" or "per"
 # if PER:
-per_alpha: 0.5
-per_epsilon: 1.0e-8
-per_beta_start: 0.6
-per_annealing_pct: 0.8
+# per_alpha: 0.6
+# per_epsilon: 1.0e-6
+# per_beta_start: 0.4
+# per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
 # Training
 # ---------------------------------------------------------------
-training_mode: "standard" # "standard" or "selfplay"
-total_timesteps: 800_000
-learning_starts: 5_000
-batch_size: 256
+training_mode: "report" # "standard" or "selfplay"
+total_timesteps: 2_500_000
+learning_starts: 10_000
+batch_size: 512
 
 # if selfplay:
 # pool_max_size: 20
@@ -81,10 +81,10 @@ batch_size: 256
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/report_3_1/HalfCheetah"
-save_interval: 200_000
-eval_interval: 500
-eval_episodes: 20
+log_dir: "./logs_report/2_2/td3_pink"
+save_interval: 1_000_000
+eval_interval: 10_000
+eval_episodes: 100
 
 # ---------------------------------------------------------------
 # Logging
@@ -95,7 +95,7 @@ logging:
   per_beta_every_steps: 100
 
   # Console print interval (in episodes)
-  print_every_episodes: 10
+  print_every_episodes: 100
 
   # Moving-average window for console + TensorBoard
   avg_window: 10
@@ -103,7 +103,7 @@ logging:
   # Which scalar groups to write to TensorBoard
   log_losses: true
   log_per: false # set true if buffer_type: "per"
-  log_sac: false # SAC-specific scalars (alpha, entropy)
+  log_sac: false # TD3 has no SAC scalars
   log_eval: true
   log_pool: false # set true if training_mode: "selfplay"
 

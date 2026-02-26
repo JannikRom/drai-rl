@@ -55,9 +55,9 @@ noise_scale: 0.1
 replay_capacity: 100_000
 buffer_type: "per" # "er" or "per"
 #if PER:
-per_alpha: 0.6
-per_epsilon: 1.0e-6
-per_beta_start: 0.4
+per_alpha: 0.4
+per_epsilon: 1.0e-8
+per_beta_start: 0.6
 per_annealing_pct: 0.8
 
 # ---------------------------------------------------------------
