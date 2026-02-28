@@ -14,8 +14,6 @@ pool is the primary driver of agent robustness.
 
 [report.pdf](report.pdf)
 
-```
-
 ## Project Structure
 
 ```
@@ -37,7 +35,7 @@ DRAI-RL/
 ├── docs/ # Additional docs
 └── requirements.txt
 
-````
+```
 
 ## Installation
 
@@ -45,7 +43,7 @@ Requires Python 3.12.
 
 ```bash
 pip install -r requirements.txt
-````
+```
 
 ## Training
 
