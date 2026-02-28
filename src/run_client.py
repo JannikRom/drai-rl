@@ -1,3 +1,7 @@
+"""
+Script for the final live tournament
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -26,7 +30,7 @@ AGENTS = {
         "checkpoint": "./final_model/drai_team/team_final.pth",
     },
 }
-    
+
 
 class CompetitionAgent(Agent):
     def __init__(self, agent_key: str):

@@ -46,7 +46,6 @@
 \begin{document}
 \begin{tikzpicture}[node distance=0.7cm]
 
-  %% ---- Left column ----
   \node[trainbox] (train)
     {\textbf{Training}\\{\footnotesize resample opponent every $S$ episodes}};
 
@@ -59,22 +58,19 @@
   \node[poolopbox, below=of dec, yshift=-0.1cm] (freeze)
     {Freeze agent snapshot\\and add to pool};
 
-  %% ---- Main downward flow ----
+  %% left columen flow
   \draw[arrow] (train) -- node[lbl, right]{every $K$ episodes} (eval);
   \draw[arrow] (eval)  -- (dec);
   \draw[arrow] (dec)   -- node[lbl, right]{yes} (freeze);
 
-  %% ---- "no": exits slightly below train.east, loops back ----
   \draw[arrow] (dec.east)
     -- ++(1.1, 0) node[lbl, above, xshift=-0.55cm]{no}
     |- ([yshift=-0.15cm]train.east);
 
-  %% ---- after freeze: loop back to train (left side) ----
   \draw[arrow] (freeze.west)
     -- ++(-1.1, 0)
     |- (train.west);
 
-  %% ---- Pool members centred on midpoint of left column ----
   \coordinate (leftcol_mid) at ($(train.center)!0.5!(freeze.center)$);
 
   \node[poolmember] (p1) at ($(leftcol_mid) + (7.2cm, 1.325cm)$)
@@ -96,22 +92,22 @@
     ] (poolouter) {};
   \end{scope}
 
-  %% ---- horizontal centre x of pool ----
+  %% centre opponen pool
   \coordinate (poolcx) at ($(poolouter.west)!0.5!(poolouter.east)$);
 
-  %% ---- blue: clean L-shape, tip points down onto "Opponent Pool" label ----
+  %% blue
   \coordinate (poollabelpt) at ($(poolouter.north) + (0, 0.55cm)$);
   \draw[dasharrow, borderblue]
     ([yshift=0.15cm]train.east)
     -- node[lbl, above]{sample} ([yshift=0.15cm]train.east -| poollabelpt)
     -- (poollabelpt);
 
-  %% ---- green: eval --> pool.west (straight across) ----
+  %% green
   \draw[dasharrow, bordergreen]
     (eval.east) -- (poolouter.west |- eval.east)
     node[lbl, midway, above]{evaluate against};
 
-  %% ---- yellow: freeze --> pool.south via horizontal pool centre ----
+  %% yellow
   \draw[dasharrow, borderyellow]
     (freeze.east)
     -| (poolcx |- poolouter.south)

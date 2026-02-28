@@ -15,8 +15,6 @@ import numpy as np
 import torch
 
 from common.config import RLConfig
-from environments.environments import get_env_dims
-
 
 class BaseAgent(ABC):
     """Abstract base class for RL agents."""

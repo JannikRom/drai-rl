@@ -51,7 +51,6 @@ logs/
 checkpoints/
 videos/
 *.mp4
-*.gif
 wandb/
 
 # LaTeX

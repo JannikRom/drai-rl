@@ -55,11 +55,17 @@
 
 
 \section{Simple Environment Diagnostics}
-This appendix presents additional training diagnostics and hyperparameter settings for each evaluated simple environment. Training curves illustrate reward progression, loss, and the \ac{SAC} specific entropy temperature.
+This appendix presents additional training diagnostics and hyperparameter settings for each evaluated simple environment. 
+Training curves illustrate reward progression, loss, and the \ac{SAC} specific entropy temperature.
+
 \subsection{Training Curves}
 \label{app:simple_losses}
 \subsubsection*{Pendulum}
-Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the Pendulum environment. All algorithms converge with respect to reward, actor loss, and critic loss, while \ac{SAC} typically converges slightly faster. The \ac{SAC} entropy temperature $\alpha$ behaves similarly for \ac{PER} and \ac{ER} variants and decreases over time, reflecting increasing policy confidence.
+Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the Pendulum environment. 
+All algorithms converge with respect to reward, actor loss, and critic loss, 
+while \ac{SAC} typically converges slightly faster. 
+The \ac{SAC} entropy temperature $\alpha$ behaves similarly for \ac{PER} and \ac{ER} variants 
+and decreases over time, reflecting increasing policy confidence.
 
 \begin{figure}[htbp]
 \centering
@@ -73,7 +79,10 @@ Figure \ref{fig:pendulum_losses} shows additional training diagnostics for the P
 \newpage
 
 \subsubsection*{Lunar Lander}
-Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_losses}. Both algorithms exhibit similar reward convergence behavior. The \ac{SAC} actor loss decreases faster than \ac{TD3}, while \ac{TD3} with \ac{PER} remains high for a longer period during training. The entropy temperature for \ac{PER} remains noticeably higher compared to \ac{ER}, indicating increased exploration pressure throughout training.
+Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_losses}. 
+Both algorithms exhibit similar reward convergence behavior. 
+The \ac{SAC} actor loss decreases faster than \ac{TD3}, while \ac{TD3} with \ac{PER} remains high for a longer period during training. 
+The entropy temperature for \ac{PER} remains noticeably higher compared to \ac{ER}, indicating increased exploration pressure throughout training.
 
 \begin{figure}[htbp]
 \centering
@@ -87,9 +96,15 @@ Training diagnostics for Lunar Lander are shown in Figure~\ref{fig:lunarlander_l
 \newpage
 
 \subsubsection*{Half Cheetah}
-Training diagnostics for Half Cheetah are shown in Figure~\ref{fig:halfcheetah_losses}. All methods converge more slowly compared to the other environments. The highest rewards are achieved by \ac{SAC} with \ac{PER}, while \ac{TD3} achieves comparable performance to \ac{SAC} with \ac{ER}. However, \ac{TD3} with \ac{ER} remains significantly lower in terms of final reward.
+Training diagnostics for Half Cheetah are shown in Figure~\ref{fig:halfcheetah_losses}. 
+All methods converge more slowly compared to the other environments. 
+The highest rewards are achieved by \ac{SAC} with \ac{PER}, while \ac{TD3} achieves comparable 
+performance to \ac{SAC} with \ac{ER}. However, \ac{TD3} with \ac{ER} remains significantly lower in terms of final reward.
 
-Actor losses behave similarly across most configurations, except for \ac{TD3} with \ac{ER}, which exhibits a noticeably higher loss. For the critic loss, the \ac{TD3} \ac{ER} variant again shows lower values compared to the other methods, while \ac{SAC} with \ac{ER} is slightly noisier. Regarding the entropy temperature $\alpha$, \ac{PER} variants require higher values. First, $\alpha$  decreases, then increases, before eventually converging.
+Actor losses behave similarly across most configurations, except for \ac{TD3} with \ac{ER}, which 
+exhibits a noticeably higher loss. For the critic loss, the \ac{TD3} \ac{ER} variant again shows 
+lower values compared to the other methods, while \ac{SAC} with \ac{ER} is slightly noisier. 
+Regarding the entropy temperature $\alpha$, \ac{PER} variants require higher values. First, $\alpha$  decreases, then increases, before eventually converging.
 
 \begin{figure}[htbp]
 \centering
@@ -104,7 +119,10 @@ Actor losses behave similarly across most configurations, except for \ac{TD3} wi
 \newpage
 \subsection{Hyperparameters}
 \label{app:simple_parameters}
-For reproducibility and completeness, the hyperparameters for all environments are listed below. \ac{SAC} typically performs well without extensive hyperparameter tuning, whereas \ac{TD3} often requires more careful parameter selection, particularly when combined with \ac{PER}. This is especially noticeable with respect to network architecture choices.
+For reproducibility and completeness, the hyperparameters for all environments are listed below. 
+\ac{SAC} typically performs well without extensive hyperparameter tuning, whereas \ac{TD3} often 
+requires more careful parameter selection, particularly when combined with \ac{PER}. 
+This is especially noticeable with respect to network architecture choices.
 \begin{table}[htbp]
 \renewcommand{\arraystretch}{0.85}
 \centering

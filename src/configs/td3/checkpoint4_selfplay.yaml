@@ -1,11 +1,11 @@
 # ===============================================================
-# TD3 — Checkpoint 4 — Self-Play
+# TD3 — 3M
 # ===============================================================
 
 # ---------------------------------------------------------------
 # Experiment
 # ---------------------------------------------------------------
-experiment_name: "checkpoint4_selfplay_td3"
+experiment_name: "td3_3M"
 seed: 3
 
 # ---------------------------------------------------------------
@@ -17,33 +17,41 @@ mode: "NORMAL"
 opponent: null
 
 # ---------------------------------------------------------------
+# Reward Shaping
+# ---------------------------------------------------------------
+reward_shaping:
+  touch_puck: 0.1
+  puck_direction: 0.05
+  closeness_to_puck: 0.0
+  time_penalty: 0.0
+  defensive_distance: 0.0
+# ---------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------
-gamma: 0.99
+gamma: 0.98
 tau: 0.005
 
 # ---------------------------------------------------------------
 # Network Architecture
 # ---------------------------------------------------------------
-actor_hidden_sizes: [256, 256]
-critic_hidden_sizes: [256, 256]
+actor_hidden_sizes: [256, 256, 256]
+critic_hidden_sizes: [256, 256, 128]
 
 # ---------------------------------------------------------------
 # Learning Rates
 # ---------------------------------------------------------------
-actor_lr: 3.0e-4
-critic_lr: 1.0e-3
+actor_lr: 1.0e-4
+critic_lr: 1.0e-4
 
 # ---------------------------------------------------------------
 # TD3 Specific
 # ---------------------------------------------------------------
 policy_noise: 0.2
-noise_clip: 0.8
+noise_clip: 0.5
 policy_delay: 2
 
-# Exploration noise
 noise_type: "pink"
-noise_scale: 0.1
+noise_scale: 0.2
 pink_beta: 1.0
 
 # ---------------------------------------------------------------
@@ -56,16 +64,16 @@ buffer_type: "er"
 # Training
 # ---------------------------------------------------------------
 training_mode: "selfplay"
-total_timesteps: 2_000_000
+total_timesteps: 3_000_000
 learning_starts: 10_000
 batch_size: 256
 
 # Self-Play Pool
 pool_max_size: 10
-pool_update_interval: 500
+pool_update_interval: 10_000
 pool_update_check_window: 100
-pool_update_eval_episodes: 10
-pool_update_win_rate_threshold: 0.55
+pool_update_eval_episodes: 20
+pool_update_win_rate_threshold: 0.70
 pool_strong_bot_prob: 0.8
 pool_snapshot_prob: 0.5
 pool_recency_bias: 2.0
@@ -73,10 +81,10 @@ pool_recency_bias: 2.0
 # ---------------------------------------------------------------
 # Saving
 # ---------------------------------------------------------------
-log_dir: "./logs/td3"
-save_interval: 50_000
+log_dir: "./logs_v3/td3_job4"
+save_interval: 100_000
 eval_interval: 25_000
-eval_episodes: 10
+eval_episodes: 20
 
 # ---------------------------------------------------------------
 # Logging
@@ -84,7 +92,7 @@ eval_episodes: 10
 logging:
   loss_every_steps: 100
   per_beta_every_steps: 100
-  print_every_episodes: 10
+  print_every_episodes: 1000
   avg_window: 10
   log_losses: true
   log_per: false

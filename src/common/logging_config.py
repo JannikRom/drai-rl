@@ -32,13 +32,7 @@ class LoggingConfig:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any] | None) -> "LoggingConfig":
-        """
-        Build from the 'logging' sub-dict in a YAML config.
-
-        Raises:
-            KeyError:   A required logging key is missing from the config.
-            TypeError:  The 'logging' block is present but not a dict.
-        """
+        """ Build from the 'logging' sub-dict in a YAML config. """
         if d is None:
             raise KeyError(
                 "'logging' block is missing from config. "

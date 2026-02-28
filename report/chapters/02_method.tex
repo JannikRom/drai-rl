@@ -25,9 +25,11 @@ further improvements to both are presented in Section~\ref{sec:improvements}.
 \subsection{Twin Delayed Deep Deterministic Policy Gradient}
 \label{sec:td3}
 
-\ac{TD3}~\cite{fujimoto2018:TD3} extends \ac{DDPG}~\cite{lillicrap2015:DDPG} by adressing two fundamental failure modes of determenistic actor-critic methods:
+\ac{TD3}~\cite{fujimoto2018:TD3} extends \ac{DDPG}~\cite{lillicrap2015:DDPG} by adressing two 
+fundamental failure modes of determenistic actor-critic methods:
 overestimation bias in the critic and instability in polciy updates.
-The actor encodes a \emph{deterministic} policy $a = \pi_\phi(s)$ and is trained to maximize expected discounted return via the determenistic policy gradient theorem~\cite{silver2014:DPG}:
+The actor encodes a \emph{deterministic} policy $a = \pi_\phi(s)$ and is trained to maximize 
+expected discounted return via the determenistic policy gradient theorem~\cite{silver2014:DPG}:
 \begin{equation}
   \nabla_\phi J(\phi)
     \approx \mathbb{E}_{s \sim \mathcal{D}}\!\left[
@@ -51,7 +53,8 @@ When computing Bellman targets, the minimum of the two target critics is used:
   \label{eq:td3target}
 \end{equation}
 where $d$ indicates episode termination and $\theta_i$ are the target network parameters updated via~\eqref{eq:polyak}.
-Taking the minimum introduces a conservative bias that counteracts the systematic overastimation inherent in maximizing over noisy function approximators.
+Taking the minimum introduces a conservative bias that counteracts the systematic overastimation 
+inherent in maximizing over noisy function approximators.
 Both critics are updated independently by minimizing the mean squarred Bellman error $(y - Q_{\theta_i}(s, a))^2$ over minibatches from $D$.
 
 Since gradients flow independently through each critic, the two networks diverge slightly,
@@ -66,23 +69,27 @@ the target action is perturbed with clipped Gaussian noise before evaluating the
   \tilde{a} = \operatorname{clip}\!\left(\pi_{\phi'}(s') + \epsilon,\;a_{\min},\;a_{\max}\right),
   \quad \epsilon \sim \operatorname{clip}\!\left(\mathcal{N}(0,\sigma),\;-c,\;c\right).
 \end{equation}
-This encourages the critics to learn a smoother value landscape, making individual erroneous peaks less exploitable.
-The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters that control the effective radius of this smoothing.
+This encourages the critics to learn a smoother value landscape, making individual 
+erroneous peaks less exploitable.The noise standard deviation $\sigma$ and clip range $c$ are hyperparameters 
+that control the effective radius of this smoothing.
 
 \medskip
 \textbf{Delayed policy updates}
 
-Even with conservative targets and smoothed backups, updating the actor at every critic step introduces high variance into the policy gradient:
-the critic has not yet fully integrated the latest target information before its gradient is used to move the policy.
+Even with conservative targets and smoothed backups, updating the actor at every critic step introduces 
+high variance into the policy gradient: the critic has not yet fully integrated the latest target information 
+before its gradient is used to move the policy.
 \ac{TD3} therefore updates the actor every $K$ critic steps, typically $K=2$.
 This delay ensures the critics are in a more stable and accurate state when the actor gradient is computed,
-substantially reducing variance of policy updates and preventing the actor from over-adapting to transient critic errors~\cite{fujimoto2018:TD3}.
+substantially reducing variance of policy updates and preventing the actor from over-adapting 
+to transient critic errors~\cite{fujimoto2018:TD3}.
 Target networks for both actor and critics are updated via the shared Polyak rule~\eqref{eq:polyak}, 
 ensuring the learning targets change slowly and the training signal remains consistent across consecutive gradient steps.
 
 \medskip
 Togehter, these three mechanisms directy counteract the core failure modes of deteremenistic actor-critic methods:
-clipped double Q-learning reduces overestimation bias, target policy smoothing regularizes the value function against sharp local peaks,
+clipped double Q-learning reduces overestimation bias, target policy smoothing 
+regularizes the value function against sharp local peaks,
 and delayed updates reduce gradient variance during policy optimization.
 
 \subsection{Soft Actor-Critic}
@@ -183,9 +190,11 @@ All modifications described below are applied on top of the \ac{TD3} and \ac{SAC
 
 \subsubsection*{Replay Buffer}
 Since both implemented algorithms are off-policy, training relies on data stored in a replay buffer. 
-We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and reducing correlations between subsequent samples. 
+We implemented standard \ac{ER}, which improves data efficiency by reusing past interactions and 
+reducing correlations between subsequent samples. 
 Transitions are stored as tuples $(s_t, a_t, r_t, s_{t+1})$ in a finite buffer and sampled uniformly during training. 
-However, uniform sampling treats all transitions equally, ignoring that transitions with large \ac{TD} errors may provide stronger learning signal. 
+However, uniform sampling treats all transitions equally, ignoring that transitions with 
+large \ac{TD} errors may provide stronger learning signal. 
 To address this, we additionally implement \ac{PER}~\cite{Schaul2015PrioritizedER}.
 
 \medskip

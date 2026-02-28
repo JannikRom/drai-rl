@@ -21,11 +21,13 @@ import argparse
 import sys
 import numpy as np
 from pathlib import Path
+from PIL import Image
 
 from common.config import RLConfig
 from environments.environments import get_env_dims, make_env
 from agents.td3_agent import TD3Agent
 from agents.sac_agent import SACAgent
+import hockey.hockey_env as hockey_env
 
 def load_agent(checkpoint_path: str, config_path: str):
     """Load a trained agent from a checkpoint file using its config."""
@@ -44,19 +46,20 @@ def load_agent(checkpoint_path: str, config_path: str):
     return agent, config
 
 
-def run_standard_eval(agent, config: RLConfig, n_episodes: int, render: bool, render_every: int = 1):
-    """Evaluate agent on any standard Gynmasium environment."""
-    render_mode = "human" if render else None
+def run_standard_eval(agent, config: RLConfig, n_episodes: int, render: bool, render_every: int = 1, record: bool = False, record_path: str = "agent.gif"):
+    """Evaluate agent on any standard Gymnasium environment."""
+    render_mode = "rgb_array" if record else ("human" if render else None)
     env = make_env(config.env_name, config, render_mode=render_mode)
 
-    if render:
+    if render and not record:
         import pygame
         pygame.init()
 
     episode_rewards = []
     episode_lengths = []
+    frames = []
 
-    for ep in range (n_episodes):
+    for ep in range(n_episodes):
         state, _ = env.reset()
         episode_reward = 0
         episode_length = 0
@@ -67,20 +70,35 @@ def run_standard_eval(agent, config: RLConfig, n_episodes: int, render: bool, re
             action = agent.select_action(state, eval_mode=True)
             state, reward, terminated, truncated, _ = env.step(action)
 
-            if render and step % render_every == 0:
+            if record:
+                frame = env.render()
+                if frame is not None:
+                    frames.append(Image.fromarray(frame))
+            elif render and step % render_every == 0:
+                import pygame
                 pygame.event.pump()
 
             done = terminated or truncated
             episode_reward += reward
             episode_length += 1
             step += 1
-        
+
         episode_rewards.append(episode_reward)
         episode_lengths.append(episode_length)
         print(f"  Episode {ep + 1:3d}/{n_episodes} | "
               f"Reward: {episode_reward:8.2f} | Length: {episode_length}")
-    
+
     env.close()
+
+    if record and frames:
+        frames[0].save(
+            record_path,
+            save_all=True,
+            append_images=frames[1:],
+            loop=0,
+            duration=33,  # ~30fps
+        )
+        print(f"\nGIF saved to: {record_path}")
 
     print("\n" + "=" * 60)
     print("EVALUATION RESULTS")
@@ -92,7 +110,6 @@ def run_standard_eval(agent, config: RLConfig, n_episodes: int, render: bool, re
     print(f"Min / Max:    {np.min(episode_rewards):.2f} / {np.max(episode_rewards):.2f}")
     print(f"Mean Length:  {np.mean(episode_lengths):.1f}")
     print("=" * 60)
-
 
 # Hockey specific
 def run_hockey_eval(agents: dict, n_episodes: int, render: bool, save_dir: str, tag: str, load_leaderboard: str):
@@ -147,6 +164,47 @@ def run_hockey_eval(agents: dict, n_episodes: int, render: bool, save_dir: str, 
     save_path = str(Path(save_dir) / f"{tag}_leaderboard.json")
     leaderboard.save(save_path)
     print(f"\nLeaderboard saved to: {save_path}")
+
+def record_single_match(agent, agent_name: str, n_episodes: int, record_path: str):
+    """Record a single match of the agent vs the strong opponent as a GIF."""
+    
+    env = hockey_env.HockeyEnv(mode='NORMAL')
+    opponent = hockey_env.BasicOpponent(weak=False)
+    frames = []
+
+    for ep in range(n_episodes):
+        obs, _ = env.reset(seed=ep)
+        obs_opponent = env.obs_agent_two()
+        done = False
+
+        while not done:
+            if hasattr(agent, 'select_action'):
+                action_agent = agent.select_action(obs, eval_mode=True)
+            else:
+                action_agent = agent.act(obs)
+            action_opponent = opponent.act(obs_opponent)
+
+            combined = np.hstack([action_agent, action_opponent])
+            obs, _, terminated, truncated, _ = env.step(combined)
+            obs_opponent = env.obs_agent_two()
+
+            frame = env.render(mode='rgb_array')
+            if frame is not None:
+                frames.append(Image.fromarray(frame))
+
+            done = terminated or truncated
+
+    env.close()
+
+    if frames:
+        frames[0].save(
+            record_path,
+            save_all=True,
+            append_images=frames[1:],
+            loop=0,
+            duration= 32,
+        )
+        print(f"GIF saved to: {record_path}")
     
 
 def parse_args():
@@ -161,6 +219,9 @@ def parse_args():
     parser.add_argument("--save-dir", type=str, default="logs/eval")
     parser.add_argument("--load-leaderboard", type=str, default=None, metavar="JSON")
     parser.add_argument("--tag", type=str, default="eval")
+    parser.add_argument("--record-match", action="store_true")
+    parser.add_argument("--record-path", type=str, default="agent.gif")
+    parser.add_argument("--record-episodes", type=int, default=1)
 
     return parser.parse_args()
 
@@ -194,6 +255,14 @@ def main():
         if len(agents) == 0:
             print("ERROR: Hockey mode requires at least one agent.")
             sys.exit(1)
+        name, agent = next(iter(agents.items()))
+        if args.record_match:
+            record_single_match(
+                agent=agent,
+                agent_name=name,
+                n_episodes=args.record_episodes,
+                record_path=args.record_path,
+            )
         run_hockey_eval(
             agents=agents,
             n_episodes=args.episodes,
@@ -212,7 +281,7 @@ def main():
             config=first_config,
             n_episodes=args.episodes,
             render=args.render,
-            render_every=args.render_every,
+            render_every=args.render_every
         )
 
 

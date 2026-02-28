@@ -6,15 +6,20 @@ pipeline including reward shaping, exploration noise, and self-play.
 
 \subsection{Simple Environments}
 We evaluate both \ac{SAC} and \ac{TD3} in three standard benchmark environments: Pendulum, Lunar Lander, and Half Cheetah. 
-For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to assess the effect of prioritized sampling on learning dynamics and final performance.
+For each algorithm, we compare training with standard \ac{ER} and with \ac{PER} in order to 
+assess the effect of prioritized sampling on learning dynamics and final performance.
 
-All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), reaching comparable final returns as shown in Table~\ref{tab:benchmark_results}. 
+All algorithmic variants converge in Pendulum (200k steps) and LunarLander (800k steps), 
+reaching comparable final returns as shown in Table~\ref{tab:benchmark_results}. 
 In these environments, \ac{PER} does not lead to substantial performance differences.
 
 In contrast, clearer distinctions emerge in HalfCheetah (800k steps). 
-Both \ac{SAC} and \ac{TD3} benefit substantially from prioritized replay, clearly outperforming their respective \ac{ER} variants. 
-Among all configurations, \ac{SAC} with \ac{PER} achieves the highest final results in this environment (Table~\ref{tab:benchmark_results}). 
-The results further indicate that \ac{SAC} generally converges faster than \ac{TD3} across environments, as reflected in steeper initial learning curves (see Appendix \ref{app:simple_losses}). 
+Both \ac{SAC} and \ac{TD3} benefit substantially from prioritized replay, 
+clearly outperforming their respective \ac{ER} variants. 
+Among all configurations, \ac{SAC} with \ac{PER} achieves the highest final 
+results in this environment (Table~\ref{tab:benchmark_results}). 
+The results further indicate that \ac{SAC} generally converges faster than \ac{TD3} across environments, 
+as reflected in steeper initial learning curves (see Appendix \ref{app:simple_losses}). 
 
 \begin{table}[h]
 \centering

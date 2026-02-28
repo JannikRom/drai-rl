@@ -20,7 +20,7 @@ import torch.nn as nn
 import numpy as np
 from common.config import RLConfig
 from common.networks import StochasticPolicy, QNetwork
-from common.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
+from common.replay_buffer import ReplayBuffer
 from agents.base_agent import BaseAgent
 
 

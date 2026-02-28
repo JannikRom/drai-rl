@@ -180,6 +180,7 @@ class TD3Agent(BaseAgent):
     
     
     def save(self, path: str, timestep: int = 0) -> None:
+        """saving agent"""
         torch.save({
             "timestep": timestep,
             "total_updates": self.total_updates,
@@ -194,6 +195,7 @@ class TD3Agent(BaseAgent):
         }, path)
     
     def load(self, path: str, weights_only: bool = True) -> None:
+        """loading agent"""
         ckpt = torch.load(path, map_location=self.device, weights_only=False)
 
         self.policy.load_state_dict(ckpt["policy"])

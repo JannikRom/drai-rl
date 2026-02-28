@@ -1,5 +1,5 @@
 """
-RL utilities: agent creation, device setup, etc.
+Agent creation.
 """
 
 from environments.environments import get_env_dims
