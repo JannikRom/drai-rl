@@ -12,7 +12,7 @@ pool is the primary driver of agent robustness.
 
 ## Report
 
-[report.pdf](report.pdf)
+[report.pdf](./report/template.pdf)
 
 ## Project Structure
 
